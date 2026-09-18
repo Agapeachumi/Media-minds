@@ -1,39 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Media Minds — Photography, Videography, Editing and AI training.">
 <title>Media Minds | Creative Media & AI</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
-
 .site-logo{width:58px;height:58px;object-fit:contain;display:block;border-radius:50%;flex:none}
 .site-header .brand{display:flex;align-items:center;gap:12px}
-.site-header .brand strong{display:block}
-.site-header .brand small{display:block}
-.gallery-cta-section .section-heading{margin-bottom:24px}.gallery-cta{border:1px solid #e2dfd7;border-radius:18px;background:#fff;padding:34px;display:flex;justify-content:space-between;align-items:center;gap:24px}.gallery-cta p{margin:0;color:#687177;max-width:650px;line-height:1.7}.hero-image{padding:0!important;overflow:hidden}.hero-image img{display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit}</style>
+.site-header .brand strong,.site-header .brand small{display:block}
+.gallery-cta-section .section-heading{margin-bottom:24px}
+.gallery-cta{border:1px solid #e2dfd7;border-radius:18px;background:#fff;padding:34px;display:flex;justify-content:space-between;align-items:center;gap:24px}
+.gallery-cta p{margin:0;color:#687177;max-width:650px;line-height:1.7}
+
+/* Clean, borderless hero image — matches the requested reference */
+.hero-card.hero-image{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  padding:0!important;
+  border-radius:0!important;
+  overflow:visible!important;
+}
+.hero-card.hero-image img{
+  display:block;
+  width:115%;
+  max-width:none;
+  height:auto;
+  object-fit:contain;
+  border-radius:0!important;
+  box-shadow:none!important;
+  margin-left:-7%;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.35) 8%,#000 20%,#000 94%,transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.35) 8%,#000 20%,#000 94%,transparent 100%);
+}
+@media(max-width:900px){
+  .hero-card.hero-image img{width:100%;margin-left:0;mask-image:none;-webkit-mask-image:none}
+}
+</style>
 </head>
 <body>
-<header class="site-header"><a class="brand" href="#home"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></a>
-<button class="menu-btn" aria-label="Open menu">☰</button><nav class="nav"><a href="#home">Home</a><a href="#about">About</a><a href="#courses">Courses</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a><a class="nav-login" href="officials.html">Officials</a></nav></header>
+<header class="site-header">
+<a class="brand" href="#home"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></a>
+<button class="menu-btn" aria-label="Open menu">☰</button>
+<nav class="nav"><a href="#home">Home</a><a href="#about">About</a><a href="#courses">Courses</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a><a class="nav-login" href="officials.html">Officials</a></nav>
+</header>
 <main>
-<section id="home" class="hero"><div class="hero-copy"><p class="eyebrow">LEARN • CREATE • SHARE</p><h1>Turn your ideas into <em>real media.</em></h1><p class="lead">Media Minds helps students build practical skills in photography, videography, editing and responsible AI.</p>
-<div class="actions"><a class="btn primary" href="#courses">Explore Courses</a><a class="btn ghost" href="#contact">Contact Us</a></div><div class="hero-points"><span>✓ Hands-on learning</span><span>✓ Creative projects</span><span>✓ Future-ready AI skills</span></div></div>
-<div class="hero-card hero-image"><img src="media-minds-hero.jpg" alt="Media Minds creative photography and editing workspace"></div></section>
-<section id="about" class="section split"><div><p class="eyebrow">ABOUT MEDIA MINDS</p><h2>Skills students can use beyond the classroom.</h2></div><div class="body-copy"><p>We introduce students to creative media and modern digital tools through structured, practical learning.</p><p>The goal is not simply to teach software. Students learn how to observe, create, communicate, solve problems and use AI responsibly.</p></div></section>
-<section id="courses" class="section"><div class="section-heading"><div><p class="eyebrow">WHAT WE TEACH</p><h2>Four practical skill areas</h2></div></div><div class="cards">
+<section id="home" class="hero">
+<div class="hero-copy">
+<p class="eyebrow">LEARN • CREATE • SHARE</p>
+<h1>Turn your ideas into <em>real media.</em></h1>
+<p class="lead">Media Minds helps students build practical skills in photography, videography, editing and responsible AI.</p>
+<div class="actions"><a class="btn primary" href="#courses">Explore Courses</a><a class="btn ghost" href="#contact">Contact Us</a></div>
+<div class="hero-points"><span>✓ Hands-on learning</span><span>✓ Creative projects</span><span>✓ Future-ready AI skills</span></div>
+</div>
+<div class="hero-card hero-image"><img src="media-minds-hero.jpg" alt="Media Minds creative photography and editing workspace"></div>
+</section>
+
+<section id="about" class="section split">
+<div><p class="eyebrow">ABOUT MEDIA MINDS</p><h2>Skills students can use beyond the classroom.</h2></div>
+<div class="body-copy"><p>We introduce students to creative media and modern digital tools through structured, practical learning.</p><p>The goal is not simply to teach software. Students learn how to observe, create, communicate, solve problems and use AI responsibly.</p></div>
+</section>
+
+<section id="courses" class="section">
+<div class="section-heading"><div><p class="eyebrow">WHAT WE TEACH</p><h2>Four practical skill areas</h2></div></div>
+<div class="cards">
 <article class="card"><div class="icon">📷</div><h3>Photography</h3><p>Camera basics, composition, lighting, portraits, storytelling and practical assignments.</p></article>
 <article class="card"><div class="icon">🎥</div><h3>Videography</h3><p>Shot planning, camera movement, audio, interviews, storytelling and production basics.</p></article>
 <article class="card"><div class="icon">✂️</div><h3>Editing</h3><p>Photo and video editing, pacing, color, sound, captions and publishing-ready projects.</p></article>
 <article class="card featured"><div class="icon">✦</div><h3>Artificial Intelligence</h3><p>AI fundamentals, prompting, research, creativity, productivity, fact-checking and responsible use.</p></article>
-</div></section>
+</div>
+</section>
+
 <section class="section band"><div><p class="eyebrow">WHY IT MATTERS</p><h2>From consuming content to creating it.</h2></div><p>Students already live in a visual and AI-powered world. Media Minds gives them a structured way to understand the tools, make useful work and develop digital responsibility.</p></section>
-<section id="gallery" class="section gallery-cta-section"><div class="section-heading"><div><p class="eyebrow">STUDENT WORK</p><h2>Explore the Gallery</h2></div><span class="muted">Pictures, videos, editing projects and AI videos.</span></div><div class="gallery-cta"><p>Student work is organized into separate viewing pages. Choose a category to explore the projects.</p><a class="btn primary" href="gallery.html">Open Student Gallery</a></div></section>
-<section id="contact" class="section contact"><div><p class="eyebrow">GET IN TOUCH</p><h2>Let’s create something meaningful.</h2><p class="body-copy">For school programs, training, collaborations or general enquiries, contact Media Minds.</p></div>
-<div class="contact-card"><span class="contact-label">EMAIL</span><a href="https://mail.google.com/mail/?view=cm&fs=1&to=Mediamindsdmp@gmail.com" target="_blank" rel="noopener">Mediamindsdmp@gmail.com</a><a class="btn primary" href="https://mail.google.com/mail/?view=cm&fs=1&to=Mediamindsdmp@gmail.com&su=Media%20Minds%20Enquiry" target="_blank" rel="noopener">Send an Email</a></div></section>
+
+<section id="gallery" class="section gallery-cta-section">
+<div class="section-heading"><div><p class="eyebrow">STUDENT WORK</p><h2>Explore the Gallery</h2></div><span class="muted">Pictures, videos, editing projects and AI videos.</span></div>
+<div class="gallery-cta"><p>Student work is organized into separate viewing pages. Choose a category to explore the projects.</p><a class="btn primary" href="gallery.html">Open Student Gallery</a></div>
+</section>
+
+<section id="contact" class="section contact">
+<div><p class="eyebrow">GET IN TOUCH</p><h2>Let’s create something meaningful.</h2><p class="body-copy">For school programs, training, collaborations or general enquiries, contact Media Minds.</p></div>
+<div class="contact-card"><span class="contact-label">EMAIL</span><a href="https://mail.google.com/mail/?view=cm&fs=1&to=Mediamindsdmp@gmail.com" target="_blank" rel="noopener">Mediamindsdmp@gmail.com</a><a class="btn primary" href="https://mail.google.com/mail/?view=cm&fs=1&to=Mediamindsdmp@gmail.com&su=Media%20Minds%20Enquiry" target="_blank" rel="noopener">Send an Email</a></div>
+</section>
 </main>
 <footer><div class="brand"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></div><p>© 2026 Media Minds. Built for learning, creativity and responsible technology.</p></footer>
 <script src="script.js"></script>
-</body></html>
+</body>
+</html>
