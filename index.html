@@ -13,15 +13,20 @@
 .live-card-body h3{font-family:"Playfair Display",serif;font-size:24px;margin:8px 0}.live-card-body p{font-size:13px;line-height:1.6;color:#687177;margin:0}
 .gallery-empty{padding:30px;border:1px dashed #d7d4cc;border-radius:14px;color:#727a7f;grid-column:1/-1;text-align:center}
 @media(max-width:850px){.live-gallery{grid-template-columns:1fr 1fr}}@media(max-width:520px){.live-gallery{grid-template-columns:1fr}}
-</style>
+
+.site-logo{width:58px;height:58px;object-fit:contain;display:block;border-radius:50%;flex:none}
+.site-header .brand{display:flex;align-items:center;gap:12px}
+.site-header .brand strong{display:block}
+.site-header .brand small{display:block}
+.hero-image{padding:0!important;overflow:hidden}.hero-image img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}</style>
 </head>
 <body>
-<header class="site-header"><a class="brand" href="#home"><span class="brand-mark">MM</span><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></a>
+<header class="site-header"><a class="brand" href="#home"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></a>
 <button class="menu-btn" aria-label="Open menu">☰</button><nav class="nav"><a href="#home">Home</a><a href="#about">About</a><a href="#courses">Courses</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a><a class="nav-login" href="officials.html">Officials</a></nav></header>
 <main>
 <section id="home" class="hero"><div class="hero-copy"><p class="eyebrow">LEARN • CREATE • SHARE</p><h1>Turn your ideas into <em>real media.</em></h1><p class="lead">Media Minds helps students build practical skills in photography, videography, editing and responsible AI.</p>
 <div class="actions"><a class="btn primary" href="#courses">Explore Courses</a><a class="btn ghost" href="#contact">Contact Us</a></div><div class="hero-points"><span>✓ Hands-on learning</span><span>✓ Creative projects</span><span>✓ Future-ready AI skills</span></div></div>
-<div class="hero-card"><div class="lens"><div class="lens-inner"></div></div><div class="hero-card-text"><span>MEDIA</span><strong>MINDS</strong><small>Photography · Video · Edit · AI</small></div></div></section>
+<div class="hero-card hero-image"><img src="media-minds-home-hero.jpg" alt="Media Minds creative photography and editing workspace"></div></section>
 <section id="about" class="section split"><div><p class="eyebrow">ABOUT MEDIA MINDS</p><h2>Skills students can use beyond the classroom.</h2></div><div class="body-copy"><p>We introduce students to creative media and modern digital tools through structured, practical learning.</p><p>The goal is not simply to teach software. Students learn how to observe, create, communicate, solve problems and use AI responsibly.</p></div></section>
 <section id="courses" class="section"><div class="section-heading"><div><p class="eyebrow">WHAT WE TEACH</p><h2>Four practical skill areas</h2></div></div><div class="cards">
 <article class="card"><div class="icon">📷</div><h3>Photography</h3><p>Camera basics, composition, lighting, portraits, storytelling and practical assignments.</p></article>
@@ -35,7 +40,7 @@
 <section id="contact" class="section contact"><div><p class="eyebrow">GET IN TOUCH</p><h2>Let’s create something meaningful.</h2><p class="body-copy">For school programs, training, collaborations or general enquiries, contact Media Minds.</p></div>
 <div class="contact-card"><span class="contact-label">EMAIL</span><a href="mailto:Mediamindsdmp@gmail.com">Mediamindsdmp@gmail.com</a><a class="btn primary" href="mailto:Mediamindsdmp@gmail.com?subject=Media%20Minds%20Enquiry">Send an Email</a></div></section>
 </main>
-<footer><div class="brand"><span class="brand-mark">MM</span><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></div><p>© 2026 Media Minds. Built for learning, creativity and responsible technology.</p></footer>
+<footer><div class="brand"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></div><p>© 2026 Media Minds. Built for learning, creativity and responsible technology.</p></footer>
 <script src="script.js"></script>
 <script>
 const SUPABASE_URL="https://byxiohhbqjygjpqfomsp.supabase.co",SUPABASE_PUBLISHABLE_KEY="sb_publishable_XyX3oKje8JVHXMo3qZ-HEg_cY9oc-Af";
