@@ -22,13 +22,20 @@ body{margin:0;min-width:0;overflow-x:hidden}
 .gallery-filter:hover,.gallery-filter.active{background:#9a6040;color:#fff;border-color:#9a6040}
 .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .gallery-card{border:1px solid #e2dfd7;border-radius:18px;overflow:hidden;background:#fff}
-.gallery-card img,.gallery-card video{display:block;width:100%;height:270px;object-fit:cover;background:#eee}
+.gallery-card img,.gallery-card video{display:block;width:100%;height:270px;object-fit:contain;background:#f4f3ef;cursor:zoom-in}
 .gallery-body{padding:18px}
 .gallery-cat{font-size:10px;letter-spacing:1.8px;color:#8a6046;font-weight:700;text-transform:uppercase}
 .gallery-body h2{font-family:"Playfair Display",serif;font-size:24px;margin:8px 0}
 .gallery-body p{font-size:14px;line-height:1.6;color:#687177;margin:0}
 .gallery-empty{grid-column:1/-1;padding:60px 25px;border:1px dashed #d7d4cc;border-radius:16px;color:#727a7f;text-align:center;font-size:18px}
 .back-link{display:inline-block;margin-top:38px;color:#8a6046;text-decoration:none;font-weight:700}
+
+.viewer{position:fixed;inset:0;background:rgba(12,18,24,.92);display:none;align-items:center;justify-content:center;padding:28px;z-index:9999}
+.viewer.open{display:flex}
+.viewer-content{position:relative;max-width:96vw;max-height:92vh;display:flex;align-items:center;justify-content:center}
+.viewer-content img,.viewer-content video{display:block;max-width:96vw;max-height:88vh;width:auto;height:auto;object-fit:contain;border-radius:10px;background:#111;box-shadow:0 20px 70px rgba(0,0,0,.45)}
+.viewer-close{position:fixed;top:18px;right:22px;width:46px;height:46px;border:1px solid rgba(255,255,255,.45);border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:28px;line-height:1;cursor:pointer}
+.viewer-hint{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.8);font-size:13px}
 @media(max-width:850px){.gallery-grid{grid-template-columns:1fr 1fr}.gallery-top{align-items:flex-start;flex-direction:column}}
 @media(max-width:560px){.gallery-grid{grid-template-columns:1fr}.gallery-top h1{font-size:54px}}
 </style>
@@ -54,6 +61,7 @@ body{margin:0;min-width:0;overflow-x:hidden}
 <div id="galleryGrid" class="gallery-grid"><div class="gallery-empty">Loading student work…</div></div>
 <a class="back-link" href="gallery.html">← Back to Gallery</a>
 </main>
+<div id="viewer" class="viewer" aria-hidden="true"><button id="viewerClose" class="viewer-close" aria-label="Close full screen">×</button><div id="viewerContent" class="viewer-content"></div><div class="viewer-hint">Click outside the media or press Esc to close</div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL="https://byxiohhbqjygjpqfomsp.supabase.co";
@@ -85,6 +93,16 @@ async function loadCategory(){
     media.alt=item.title;
     media.loading="lazy";
     if(isVideo){media.controls=true;media.preload="metadata";}
+    media.addEventListener("click",(event)=>{
+      event.stopPropagation();
+      const viewer=document.getElementById("viewer");
+      const content=document.getElementById("viewerContent");
+      content.innerHTML="";
+      const full=isVideo?document.createElement("video"):document.createElement("img");
+      full.src=signed.signedUrl; full.alt=item.title;
+      if(isVideo){full.controls=true;full.autoplay=true;full.playsInline=true;}
+      content.appendChild(full); viewer.classList.add("open"); viewer.setAttribute("aria-hidden","false");
+    });
     card.appendChild(media);
     const body=document.createElement("div");
     body.className="gallery-body";
@@ -95,6 +113,12 @@ async function loadCategory(){
   if(!grid.children.length) grid.innerHTML='<div class="gallery-empty">No student work has been published in this category yet.</div>';
 }
 loadCategory();
+const viewer=document.getElementById("viewer");
+const viewerContent=document.getElementById("viewerContent");
+function closeViewer(){viewer.classList.remove("open");viewer.setAttribute("aria-hidden","true");viewerContent.innerHTML="";}
+document.getElementById("viewerClose").addEventListener("click",closeViewer);
+viewer.addEventListener("click",(e)=>{if(e.target===viewer) closeViewer();});
+document.addEventListener("keydown",(e)=>{if(e.key==="Escape") closeViewer();});
 </script>
 </body>
 </html>
