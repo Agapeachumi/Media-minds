@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Media Minds | Student Work</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.site-logo{width:58px;height:58px;object-fit:contain;display:block;border-radius:50%;flex:none}
+.site-header .brand{display:flex;align-items:center;gap:12px}
+.site-header .brand strong,.site-header .brand small{display:block}
+body{margin:0;min-width:0;overflow-x:hidden}
+.gallery-page{width:min(1200px,calc(100% - 40px));margin:0 auto;padding:58px 0 80px}
+.gallery-top{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:38px}
+.gallery-top h1{font-family:"Playfair Display",serif;font-size:72px;line-height:.95;margin:8px 0 0;color:#18222d}
+.gallery-top .muted{color:#65798d;font-size:18px}
+.gallery-buttons{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 38px}
+.gallery-filter{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #cdb7a6;background:#fff;color:#18222d;border-radius:999px;padding:13px 24px;font-weight:700;transition:.2s}
+.gallery-filter:hover,.gallery-filter.active{background:#9a6040;color:#fff;border-color:#9a6040}
+.gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.gallery-card{border:1px solid #e2dfd7;border-radius:18px;overflow:hidden;background:#fff}
+.gallery-card img,.gallery-card video{display:block;width:100%;height:270px;object-fit:cover;background:#eee}
+.gallery-body{padding:18px}
+.gallery-cat{font-size:10px;letter-spacing:1.8px;color:#8a6046;font-weight:700;text-transform:uppercase}
+.gallery-body h2{font-family:"Playfair Display",serif;font-size:24px;margin:8px 0}
+.gallery-body p{font-size:14px;line-height:1.6;color:#687177;margin:0}
+.gallery-empty{grid-column:1/-1;padding:60px 25px;border:1px dashed #d7d4cc;border-radius:16px;color:#727a7f;text-align:center;font-size:18px}
+.back-link{display:inline-block;margin-top:38px;color:#8a6046;text-decoration:none;font-weight:700}
+@media(max-width:850px){.gallery-grid{grid-template-columns:1fr 1fr}.gallery-top{align-items:flex-start;flex-direction:column}}
+@media(max-width:560px){.gallery-grid{grid-template-columns:1fr}.gallery-top h1{font-size:54px}}
+</style>
+</head>
+</head>
+<body>
+<header class="site-header">
+<a class="brand" href="index.html"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></a>
+<button class="menu-btn" aria-label="Open menu">☰</button>
+<nav class="nav"><a href="index.html">Home</a><a href="index.html#about">About</a><a href="index.html#courses">Courses</a><a href="gallery.html" class="active">Gallery</a><a href="index.html#contact">Contact</a><a class="nav-login" href="officials.html">Officials</a></nav>
+</header>
+<main class="gallery-page">
+<div class="gallery-top">
+<div><p class="eyebrow">STUDENT WORK</p><h1>Videos</h1></div>
+<div class="muted">Videography projects published by students.</div>
+</div>
+<div class="gallery-buttons">
+<a class="gallery-filter" href="picture.html">Picture</a>
+<a class="gallery-filter" href="video.html">Video</a>
+<a class="gallery-filter" href="editing.html">Editing</a>
+<a class="gallery-filter" href="ai-video.html">AI Video</a>
+</div>
+<div id="galleryGrid" class="gallery-grid"><div class="gallery-empty">Loading student work…</div></div>
+<a class="back-link" href="gallery.html">← Back to Gallery</a>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://byxiohhbqjygjpqfomsp.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_XyX3oKje8JVHXMo3qZ-HEg_cY9oc-Af";
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const CATEGORY="Videography";
+const grid=document.getElementById("galleryGrid");
+
+function esc(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[ch]))}
+
+async function loadCategory(){
+  const {data,error}=await supabaseClient.from("media")
+    .select("title,description,category,file_url,file_type,created_at")
+    .eq("category",CATEGORY)
+    .order("created_at",{ascending:false});
+  if(error || !data?.length){
+    grid.innerHTML='<div class="gallery-empty">No student work has been published in this category yet.</div>';
+    return;
+  }
+  grid.innerHTML="";
+  for(const item of data){
+    const {data:signed,error:signedError}=await supabaseClient.storage.from("media").createSignedUrl(item.file_url,3600);
+    if(signedError || !signed?.signedUrl) continue;
+    const card=document.createElement("article");
+    card.className="gallery-card";
+    const isVideo=(item.file_type||"").startsWith("video/");
+    const media=isVideo?document.createElement("video"):document.createElement("img");
+    media.src=signed.signedUrl;
+    media.alt=item.title;
+    media.loading="lazy";
+    if(isVideo){media.controls=true;media.preload="metadata";}
+    card.appendChild(media);
+    const body=document.createElement("div");
+    body.className="gallery-body";
+    body.innerHTML=`<div class="gallery-cat">${esc(item.category)}</div><h2>${esc(item.title)}</h2><p>${esc(item.description||"")}</p>`;
+    card.appendChild(body);
+    grid.appendChild(card);
+  }
+  if(!grid.children.length) grid.innerHTML='<div class="gallery-empty">No student work has been published in this category yet.</div>';
+}
+loadCategory();
+</script>
+</body>
+</html>
