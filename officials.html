@@ -1,23 +1,93 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Officials Portal | Media Minds</title><link rel="stylesheet" href="styles.css"></head>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Officials Portal | Media Minds</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+.portal-wide{max-width:1200px!important}.portal-head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:30px}
+.portal-grid{display:grid;grid-template-columns:360px 1fr;gap:25px}.portal-box{max-width:none}
+.media-admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px}
+.media-admin-card{border:1px solid #e3e0d8;border-radius:14px;overflow:hidden;background:#fff}
+.media-admin-card img,.media-admin-card video{width:100%;height:180px;object-fit:cover;display:block;background:#eee}
+.media-admin-body{padding:14px}.media-admin-body h3{margin:0 0 6px;font-family:"Playfair Display",serif;font-size:20px}
+.media-admin-body p{font-size:12px;color:#687177;line-height:1.5;margin:6px 0}.media-admin-meta{font-size:10px;letter-spacing:1px;color:#8a6c50;text-transform:uppercase;font-weight:700}
+.delete-btn{margin-top:10px;border:1px solid #d8b7b0;background:#fff7f5;color:#8a4036;border-radius:7px;padding:8px 11px;font-weight:700;cursor:pointer}
+.status{margin-top:12px;min-height:20px;font-size:13px}.status.ok{color:#28734b}.status.error{color:#a43e3e}
+.file-note{font-size:11px;color:#7b8388;margin-top:5px}
+@media(max-width:900px){.portal-grid{grid-template-columns:1fr}.media-admin-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.media-admin-grid{grid-template-columns:1fr}.portal-head{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
 <body>
-<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">MM</span><span><strong>Media Minds</strong><small>Officials Portal</small></span></a><a href="index.html">← Back to website</a></header>
-<main class="portal">
-<p class="eyebrow">MEDIA MINDS • OFFICIALS</p><h1>Officials Portal</h1>
+<header class="site-header">
+<a class="brand" href="index.html"><span class="brand-mark">MM</span><span><strong>Media Minds</strong><small>Officials Portal</small></span></a>
+<a href="index.html">← Back to website</a>
+</header>
+<main class="portal portal-wide">
 <div id="loginBox" class="portal-box">
-<h2>Sign in</h2><p class="body-copy">This page is ready for Supabase authentication. No passwords are stored in this website.</p>
-<div class="field"><label>Email</label><input id="email" type="email" placeholder="official@example.com"></div>
-<div class="field"><label>Password</label><input id="password" type="password" placeholder="••••••••"></div>
-<button class="btn primary" id="loginBtn">Sign In</button>
-<p id="loginMessage" class="notice">Connect Supabase before using the portal.</p>
+<p class="eyebrow">MEDIA MINDS • OFFICIALS</p><h1>Officials Portal</h1>
+<p class="body-copy">Sign in to upload and manage student photography, videography, editing and AI projects.</p>
+<div class="field"><label for="email">Official email</label><input id="email" type="email" value="Mediamindsdmp@gmail.com" autocomplete="username"></div>
+<div class="field"><label for="password">Password</label><input id="password" type="password" placeholder="Enter your password" autocomplete="current-password"></div>
+<button class="btn primary" id="loginBtn" type="button">Sign In</button><p id="loginMessage" class="status"></p>
 </div>
-<div id="dashboard" class="portal-box hidden">
-<h2>Upload media</h2>
-<div class="notice">After Supabase is connected, officials can upload files here and assign categories such as Photography, Videography, Editing or AI.</div>
-<div class="field"><label>Category</label><select><option>Photography</option><option>Videography</option><option>Editing</option><option>AI Projects</option></select></div>
-<div class="field"><label>Title</label><input placeholder="Project title"></div>
-<div class="field"><label>File</label><input type="file" accept="image/*,video/*"></div>
-<button class="btn primary">Upload</button>
+
+<section id="dashboard" class="hidden">
+<div class="portal-head"><div><p class="eyebrow">MEDIA MINDS • DASHBOARD</p><h1>Manage Student Work</h1><p id="signedInAs" class="body-copy"></p></div>
+<button class="btn ghost" id="logoutBtn" type="button">Sign Out</button></div>
+<div class="portal-grid">
+<div class="portal-box">
+<h2>Upload Media</h2>
+<div class="field"><label for="category">Category</label><select id="category"><option>Photography</option><option>Videography</option><option>Editing</option><option>AI Projects</option></select></div>
+<div class="field"><label for="title">Title</label><input id="title" type="text" placeholder="Project title"></div>
+<div class="field"><label for="description">Description</label><textarea id="description" rows="4" placeholder="Short description (optional)"></textarea></div>
+<div class="field"><label for="mediaFile">Photo or video</label><input id="mediaFile" type="file" accept="image/*,video/*"></div>
+<div class="file-note">Maximum file size: 50 MB.</div>
+<button class="btn primary" id="uploadBtn" type="button">Upload Project</button><p id="uploadMessage" class="status"></p>
 </div>
+<div class="portal-box"><h2>Published Media</h2><p class="body-copy">Items uploaded here appear in the public Gallery on the main website.</p>
+<div id="adminGallery" class="media-admin-grid"></div><p id="galleryMessage" class="status"></p></div>
+</div>
+</section>
 </main>
+<script>
+const SUPABASE_URL = "https://byxiohhbqjygjpqfomsp.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XyX3oKje8JVHXMo3qZ-HEg_cY9oc-Af";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const OFFICIAL_EMAIL = "mediamindsdmp@gmail.com";
+const loginBox=document.getElementById("loginBox"),dashboard=document.getElementById("dashboard");
+const loginMessage=document.getElementById("loginMessage"),uploadMessage=document.getElementById("uploadMessage"),galleryMessage=document.getElementById("galleryMessage");
+function setStatus(el,message,type=""){el.textContent=message||"";el.className="status "+type}
+function showDashboard(user){loginBox.classList.add("hidden");dashboard.classList.remove("hidden");document.getElementById("signedInAs").textContent="Signed in as "+user.email;loadAdminGallery()}
+function showLogin(){dashboard.classList.add("hidden");loginBox.classList.remove("hidden")}
+async function checkSession(){const {data,error}=await supabaseClient.auth.getSession();if(error)return;const user=data.session?.user;if(user&&user.email?.toLowerCase()===OFFICIAL_EMAIL.toLowerCase())showDashboard(user);else if(user){await supabaseClient.auth.signOut();setStatus(loginMessage,"This account is not authorized for the Officials Portal.","error")}}
+document.getElementById("loginBtn").addEventListener("click",async()=>{const email=document.getElementById("email").value.trim(),password=document.getElementById("password").value;setStatus(loginMessage,"Signing in…");const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error){setStatus(loginMessage,error.message,"error");return}if(data.user?.email?.toLowerCase()!==OFFICIAL_EMAIL.toLowerCase()){await supabaseClient.auth.signOut();setStatus(loginMessage,"This account is not authorized for the Officials Portal.","error");return}setStatus(loginMessage,"");showDashboard(data.user)});
+document.getElementById("logoutBtn").addEventListener("click",async()=>{await supabaseClient.auth.signOut();showLogin()});
+document.getElementById("uploadBtn").addEventListener("click",async()=>{
+const title=document.getElementById("title").value.trim(),description=document.getElementById("description").value.trim(),category=document.getElementById("category").value,file=document.getElementById("mediaFile").files[0];
+if(!title)return setStatus(uploadMessage,"Please enter a title.","error");if(!file)return setStatus(uploadMessage,"Please choose a photo or video.","error");if(file.size>50*1024*1024)return setStatus(uploadMessage,"The file is larger than 50 MB.","error");
+setStatus(uploadMessage,"Uploading…");const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_"),path=Date.now()+"-"+crypto.randomUUID()+"-"+safeName;
+const {error:storageError}=await supabaseClient.storage.from("media").upload(path,file,{upsert:false,contentType:file.type});
+if(storageError){setStatus(uploadMessage,storageError.message,"error");return}
+const {error:dbError}=await supabaseClient.from("media").insert({title,description:description||null,category,file_url:path,file_type:file.type});
+if(dbError){await supabaseClient.storage.from("media").remove([path]);setStatus(uploadMessage,dbError.message,"error");return}
+document.getElementById("title").value="";document.getElementById("description").value="";document.getElementById("mediaFile").value="";
+setStatus(uploadMessage,"Uploaded successfully.","ok");await loadAdminGallery();
+});
+async function getSignedUrl(path){const {data,error}=await supabaseClient.storage.from("media").createSignedUrl(path,3600);return error?null:data.signedUrl}
+async function loadAdminGallery(){
+const container=document.getElementById("adminGallery");container.innerHTML="";setStatus(galleryMessage,"Loading…");
+const {data,error}=await supabaseClient.from("media").select("id,title,description,category,file_url,file_type,created_at").order("created_at",{ascending:false});
+if(error){setStatus(galleryMessage,error.message,"error");return}if(!data.length){setStatus(galleryMessage,"No media uploaded yet.");return}setStatus(galleryMessage,"");
+for(const item of data){const url=await getSignedUrl(item.file_url),card=document.createElement("article");card.className="media-admin-card";
+const isVideo=(item.file_type||"").startsWith("video/"),media=isVideo?document.createElement("video"):document.createElement("img");media.src=url||"";media.controls=isVideo;media.loading="lazy";media.alt=item.title;card.appendChild(media);
+const body=document.createElement("div");body.className="media-admin-body";body.innerHTML=`<div class="media-admin-meta">${escapeHtml(item.category)}</div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description||"")}</p>`;
+const del=document.createElement("button");del.className="delete-btn";del.textContent="Delete";del.addEventListener("click",()=>deleteItem(item));body.appendChild(del);card.appendChild(body);container.appendChild(card)}}
+function escapeHtml(value){return String(value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[ch]))}
+async function deleteItem(item){if(!confirm(`Delete "${item.title}"?`))return;setStatus(galleryMessage,"Deleting…");const {error:storageError}=await supabaseClient.storage.from("media").remove([item.file_url]);if(storageError)return setStatus(galleryMessage,storageError.message,"error");const {error:dbError}=await supabaseClient.from("media").delete().eq("id",item.id);if(dbError)return setStatus(galleryMessage,dbError.message,"error");await loadAdminGallery()}
+supabaseClient.auth.onAuthStateChange((_event,session)=>{const user=session?.user;if(user&&user.email?.toLowerCase()===OFFICIAL_EMAIL.toLowerCase())showDashboard(user);else if(!user)showLogin()});
+checkSession();
+</script>
 </body></html>
