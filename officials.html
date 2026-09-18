@@ -100,7 +100,6 @@ Choose where the project should appear. <strong>Picture</strong> → Picture pag
 <script>
 const SUPABASE_URL = "https://byxiohhbqjygjpqfomsp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XyX3oKje8JVHXMo3qZ-HEg_cY9oc-Af";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 const OFFICIAL_EMAIL = "mediamindsdmp@gmail.com";
 
 const loginBox=document.getElementById("loginBox");
@@ -108,29 +107,41 @@ const dashboard=document.getElementById("dashboard");
 const loginMessage=document.getElementById("loginMessage");
 const uploadMessage=document.getElementById("uploadMessage");
 const galleryMessage=document.getElementById("galleryMessage");
+let supabaseClient=null;
 
 function setStatus(el,message,type=""){
   el.textContent=message||"";
   el.className="status "+type;
 }
-
 function showDashboard(user){
   loginBox.classList.add("hidden");
   dashboard.classList.remove("hidden");
-  document.getElementById("signedInAs").textContent="Signed in as "+user.email;
+  document.getElementById("signedInAs").textContent="Signed in as "+(user.email||OFFICIAL_EMAIL);
   loadAdminGallery();
 }
-
 function showLogin(){
   dashboard.classList.add("hidden");
   loginBox.classList.remove("hidden");
 }
+function sdkReady(){
+  if(window.supabase && typeof window.supabase.createClient === "function"){
+    if(!supabaseClient) supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+    return true;
+  }
+  return false;
+}
+
+// Make the page fail visibly instead of silently if the Supabase library is blocked.
+function showLibraryError(){
+  setStatus(loginMessage,"The login service could not load. Please refresh the page and try again.","error");
+}
 
 async function checkSession(){
+  if(!sdkReady()) return;
   const {data,error}=await supabaseClient.auth.getSession();
-  if(error)return;
+  if(error) return;
   const user=data.session?.user;
-  if(user&&user.email?.toLowerCase()===OFFICIAL_EMAIL.toLowerCase())showDashboard(user);
+  if(user && user.email?.toLowerCase()===OFFICIAL_EMAIL.toLowerCase()) showDashboard(user);
   else if(user){
     await supabaseClient.auth.signOut();
     setStatus(loginMessage,"This account is not authorized for the Officials Portal.","error");
@@ -138,77 +149,47 @@ async function checkSession(){
 }
 
 document.getElementById("loginBtn").addEventListener("click",async()=>{
+  if(!sdkReady()){ showLibraryError(); return; }
   const email=document.getElementById("email").value.trim();
   const password=document.getElementById("password").value;
+  if(!email || !password){ setStatus(loginMessage,"Please enter your email and password.","error"); return; }
   setStatus(loginMessage,"Signing in…");
-
   const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(error){setStatus(loginMessage,error.message,"error");return}
-
+  if(error){ setStatus(loginMessage,error.message,"error"); return; }
   if(data.user?.email?.toLowerCase()!==OFFICIAL_EMAIL.toLowerCase()){
     await supabaseClient.auth.signOut();
     setStatus(loginMessage,"This account is not authorized for the Officials Portal.","error");
     return;
   }
-
   setStatus(loginMessage,"");
   showDashboard(data.user);
 });
 
 document.getElementById("logoutBtn").addEventListener("click",async()=>{
-  await supabaseClient.auth.signOut();
+  if(sdkReady()) await supabaseClient.auth.signOut();
   showLogin();
 });
 
 document.getElementById("uploadBtn").addEventListener("click",async()=>{
+  if(!sdkReady()){setStatus(uploadMessage,"The login service could not load. Please refresh the page.","error");return;}
   const title=document.getElementById("title").value.trim();
   const description=document.getElementById("description").value.trim();
   const category=document.getElementById("category").value;
   const file=document.getElementById("mediaFile").files[0];
-
   if(!title)return setStatus(uploadMessage,"Please enter a title.","error");
   if(!file)return setStatus(uploadMessage,"Please choose a photo or video.","error");
   if(file.size>50*1024*1024)return setStatus(uploadMessage,"The file is larger than 50 MB.","error");
-
   setStatus(uploadMessage,"Uploading…");
-
   const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-  const path=Date.now()+"-"+crypto.randomUUID()+"-"+safeName;
-
-  const {error:storageError}=await supabaseClient.storage.from("media").upload(
-    path,file,{upsert:false,contentType:file.type}
-  );
-
-  if(storageError){
-    setStatus(uploadMessage,storageError.message,"error");
-    return;
-  }
-
-  const {error:dbError}=await supabaseClient.from("media").insert({
-    title,
-    description:description||null,
-    category,
-    file_url:path,
-    file_type:file.type
-  });
-
-  if(dbError){
-    await supabaseClient.storage.from("media").remove([path]);
-    setStatus(uploadMessage,dbError.message,"error");
-    return;
-  }
-
+  const path=Date.now()+"-"+safeName;
+  const {error:storageError}=await supabaseClient.storage.from("media").upload(path,file,{upsert:false,contentType:file.type});
+  if(storageError){setStatus(uploadMessage,storageError.message,"error");return;}
+  const {error:dbError}=await supabaseClient.from("media").insert({title,description:description||null,category,file_url:path,file_type:file.type});
+  if(dbError){await supabaseClient.storage.from("media").remove([path]);setStatus(uploadMessage,dbError.message,"error");return;}
   document.getElementById("title").value="";
   document.getElementById("description").value="";
   document.getElementById("mediaFile").value="";
-
-  const categoryLabel={
-    "Photography":"Picture",
-    "Videography":"Video",
-    "Editing":"Editing",
-    "AI Projects":"AI Video"
-  }[category];
-
+  const categoryLabel={Photography:"Picture",Videography:"Video",Editing:"Editing","AI Projects":"AI Video"}[category];
   setStatus(uploadMessage,"Uploaded successfully. This project is now in the "+categoryLabel+" page.","ok");
   await loadAdminGallery();
 });
@@ -217,84 +198,44 @@ async function getSignedUrl(path){
   const {data,error}=await supabaseClient.storage.from("media").createSignedUrl(path,3600);
   return error?null:data.signedUrl;
 }
-
 async function loadAdminGallery(){
+  if(!sdkReady())return;
   const container=document.getElementById("adminGallery");
   container.innerHTML="";
   setStatus(galleryMessage,"Loading…");
-
-  const {data,error}=await supabaseClient.from("media")
-    .select("id,title,description,category,file_url,file_type,created_at")
-    .order("created_at",{ascending:false});
-
-  if(error){setStatus(galleryMessage,error.message,"error");return}
-  if(!data.length){setStatus(galleryMessage,"No media uploaded yet.");return}
+  const {data,error}=await supabaseClient.from("media").select("id,title,description,category,file_url,file_type,created_at").order("created_at",{ascending:false});
+  if(error){setStatus(galleryMessage,error.message,"error");return;}
+  if(!data.length){setStatus(galleryMessage,"No media uploaded yet.");return;}
   setStatus(galleryMessage,"");
-
   for(const item of data){
     const url=await getSignedUrl(item.file_url);
-    const card=document.createElement("article");
-    card.className="media-admin-card";
-
+    const card=document.createElement("article"); card.className="media-admin-card";
     const isVideo=(item.file_type||"").startsWith("video/");
     const media=isVideo?document.createElement("video"):document.createElement("img");
-    media.src=url||"";
-    media.controls=isVideo;
-    media.loading="lazy";
-    media.alt=item.title;
+    media.src=url||""; media.controls=isVideo; media.alt=item.title;
     card.appendChild(media);
-
-    const body=document.createElement("div");
-    body.className="media-admin-body";
-
-    const categoryLabel={
-      "Photography":"Picture",
-      "Videography":"Video",
-      "Editing":"Editing",
-      "AI Projects":"AI Video"
-    }[item.category]||item.category;
-
-    body.innerHTML=`<div class="media-admin-meta">${escapeHtml(categoryLabel)}</div>
-      <h3>${escapeHtml(item.title)}</h3>
-      <p>${escapeHtml(item.description||"")}</p>`;
-
-    const del=document.createElement("button");
-    del.className="delete-btn";
-    del.textContent="Delete";
-    del.addEventListener("click",()=>deleteItem(item));
-
-    body.appendChild(del);
-    card.appendChild(body);
-    container.appendChild(card);
+    const body=document.createElement("div"); body.className="media-admin-body";
+    body.innerHTML=`<div class="media-admin-meta">${item.category}</div><h3></h3><p></p>`;
+    body.querySelector("h3").textContent=item.title;
+    body.querySelector("p").textContent=item.description||"";
+    const btn=document.createElement("button"); btn.className="delete-btn"; btn.type="button"; btn.textContent="Delete";
+    btn.addEventListener("click",()=>deleteMedia(item));
+    body.appendChild(btn); card.appendChild(body); container.appendChild(card);
   }
 }
-
-function escapeHtml(value){
-  return String(value).replace(/[&<>"']/g,ch=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;","'"':"&quot;","'":"&#039;"
-  }[ch]));
-}
-
-async function deleteItem(item){
-  if(!confirm(`Delete "${item.title}"?`))return;
-  setStatus(galleryMessage,"Deleting…");
-
-  const {error:storageError}=await supabaseClient.storage.from("media").remove([item.file_url]);
-  if(storageError)return setStatus(galleryMessage,storageError.message,"error");
-
+async function deleteMedia(item){
+  if(!sdkReady())return;
+  if(!confirm("Delete this project?"))return;
   const {error:dbError}=await supabaseClient.from("media").delete().eq("id",item.id);
-  if(dbError)return setStatus(galleryMessage,dbError.message,"error");
-
+  if(dbError){setStatus(galleryMessage,dbError.message,"error");return;}
+  await supabaseClient.storage.from("media").remove([item.file_url]);
   await loadAdminGallery();
 }
 
-supabaseClient.auth.onAuthStateChange((_event,session)=>{
-  const user=session?.user;
-  if(user&&user.email?.toLowerCase()===OFFICIAL_EMAIL.toLowerCase())showDashboard(user);
-  else if(!user)showLogin();
-});
-
-checkSession();
+// Supabase is loaded before this script in normal operation.
+// If a browser extension/network delay prevents it, wait briefly and then show a useful message.
+if(sdkReady()) checkSession();
+else setTimeout(()=>{ if(sdkReady()) checkSession(); else showLibraryError(); },1200);
 </script>
 </body>
 </html>
