@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Officials Portal | Media Minds</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">MM</span><span><strong>Media Minds</strong><small>Officials Portal</small></span></a><a href="index.html">← Back to website</a></header>
+<main class="portal">
+<p class="eyebrow">MEDIA MINDS • OFFICIALS</p><h1>Officials Portal</h1>
+<div id="loginBox" class="portal-box">
+<h2>Sign in</h2><p class="body-copy">This page is ready for Supabase authentication. No passwords are stored in this website.</p>
+<div class="field"><label>Email</label><input id="email" type="email" placeholder="official@example.com"></div>
+<div class="field"><label>Password</label><input id="password" type="password" placeholder="••••••••"></div>
+<button class="btn primary" id="loginBtn">Sign In</button>
+<p id="loginMessage" class="notice">Connect Supabase before using the portal.</p>
+</div>
+<div id="dashboard" class="portal-box hidden">
+<h2>Upload media</h2>
+<div class="notice">After Supabase is connected, officials can upload files here and assign categories such as Photography, Videography, Editing or AI.</div>
+<div class="field"><label>Category</label><select><option>Photography</option><option>Videography</option><option>Editing</option><option>AI Projects</option></select></div>
+<div class="field"><label>Title</label><input placeholder="Project title"></div>
+<div class="field"><label>File</label><input type="file" accept="image/*,video/*"></div>
+<button class="btn primary">Upload</button>
+</div>
+</main>
+</body></html>
