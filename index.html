@@ -85,10 +85,31 @@
 
 <section id="contact" class="section contact">
 <div><p class="eyebrow">GET IN TOUCH</p><h2>Let’s create something meaningful.</h2><p class="body-copy">For school programs, training, collaborations or general enquiries, contact Media Minds.</p></div>
-<div class="contact-card"><span class="contact-label">EMAIL</span><a href="https://mail.google.com/mail/?view=cm&fs=1&to=Mediamindsdmp%40gmail.com&su=Media%20Minds%20Enquiry">Mediamindsdmp@gmail.com</a><a class="btn primary" href="https://mail.google.com/mail/?view=cm&fs=1&to=Mediamindsdmp%40gmail.com&su=Media%20Minds%20Enquiry">Send an Email</a></div>
+<div class="contact-card"><span class="contact-label">EMAIL</span><a href="https://mail.google.com/mail/?view=cm&fs=1&to=Mediamindsdmp%40gmail.com&su=Media%20Minds%20Enquiry">Mediamindsdmp@gmail.com</a><a class="btn primary" href="https://mail.google.com/mail/?view=cm&fs=1&to=Mediamindsdmp%40gmail.com&su=Media%20Minds%20Enquiry" id="sendEmailBtn">Send an Email</a></div>
 </section>
 </main>
 <footer><div class="brand"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></div><p>© 2026 Media Minds. Built for learning, creativity and responsible technology.</p></footer>
+<script>
+(function(){
+const email="Mediamindsdmp@gmail.com",subject="Media Minds Enquiry";
+const webGmail="https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(email)+"&su="+encodeURIComponent(subject);
+const btn=document.getElementById("sendEmailBtn"); if(!btn)return;
+btn.addEventListener("click",function(e){
+ const ua=navigator.userAgent||"",android=/Android/i.test(ua),ios=/iPhone|iPad|iPod/i.test(ua);
+ e.preventDefault();
+ if(android){
+  const intent="intent://compose?to="+encodeURIComponent(email)+"&subject="+encodeURIComponent(subject)+"#Intent;scheme=mailto;package=com.google.android.gm;end";
+  window.location.href=intent;
+  setTimeout(()=>window.location.href=webGmail,1500);
+ } else if(ios){
+  window.location.href="googlegmail://co?to="+encodeURIComponent(email)+"&subject="+encodeURIComponent(subject);
+  setTimeout(()=>window.location.href=webGmail,1500);
+ } else {
+  window.location.href=webGmail;
+ }
+});
+})();
+</script>
 <script src="script.js"></script>
 </body>
 </html>
