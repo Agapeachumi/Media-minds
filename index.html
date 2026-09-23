@@ -41,9 +41,237 @@
 @media(max-width:900px){
   .hero-card.hero-image img{width:100%;margin-left:0;mask-image:none;-webkit-mask-image:none}
 }
+  /* ================================
+   MEDIA MINDS WELCOME SCREEN
+   ================================ */
+
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,.95), transparent 35%),
+    linear-gradient(135deg, #f8f5ef, #eee7dc);
+  transition: opacity .6s ease, visibility .6s ease;
+}
+
+.welcome-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.welcome-content {
+  width: min(680px, 100%);
+  text-align: center;
+  padding: 55px 35px;
+  border: 1px solid rgba(40, 35, 30, .08);
+  border-radius: 28px;
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 25px 70px rgba(30, 25, 20, .12);
+  backdrop-filter: blur(12px);
+  animation: welcomeAppear .8s ease both;
+}
+
+.welcome-logo img {
+  width: 105px;
+  height: 105px;
+  object-fit: contain;
+  border-radius: 50%;
+  margin-bottom: 22px;
+}
+
+.welcome-eyebrow {
+  margin: 0 0 18px;
+  color: #987158;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.welcome-content h1 {
+  margin: 0;
+  color: #17232d;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(42px, 7vw, 72px);
+  line-height: 1.05;
+}
+
+.welcome-content h1 span {
+  color: #987158;
+}
+
+.welcome-text {
+  max-width: 540px;
+  margin: 22px auto 32px;
+  color: #607080;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+#nameStep label {
+  display: block;
+  margin-bottom: 10px;
+  color: #17232d;
+  font-weight: 600;
+}
+
+#visitorName {
+  width: min(380px, 100%);
+  padding: 15px 18px;
+  border: 1px solid #d8d1c8;
+  border-radius: 12px;
+  background: #fff;
+  color: #17232d;
+  font: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+
+#visitorName:focus {
+  border-color: #987158;
+  box-shadow: 0 0 0 3px rgba(152,113,88,.12);
+}
+
+#welcomeContinue,
+#exploreMediaMinds {
+  display: block;
+  margin: 16px auto 0;
+  padding: 14px 25px;
+  border: 0;
+  border-radius: 10px;
+  background: #17232d;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .2s ease, background .2s ease;
+}
+
+#welcomeContinue:hover,
+#exploreMediaMinds:hover {
+  transform: translateY(-2px);
+  background: #987158;
+}
+
+.greeting-step {
+  animation: greetingAppear .5s ease both;
+}
+
+.greeting-step h2 {
+  margin: 20px 0 10px;
+  color: #17232d;
+  font-family: "Playfair Display", serif;
+  font-size: 34px;
+}
+
+.greeting-step h2 span {
+  color: #987158;
+}
+
+.greeting-step p {
+  margin: 0;
+  color: #607080;
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+@keyframes welcomeAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes greetingAppear {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .welcome-content {
+    padding: 40px 22px;
+    border-radius: 22px;
+  }
+
+  .welcome-logo img {
+    width: 85px;
+    height: 85px;
+  }
+
+  .welcome-content h1 {
+    font-size: 42px;
+  }
+
+  .welcome-text {
+    font-size: 16px;
+  }
+}
 </style>
 </head>
 <body>
+  <!-- MEDIA MINDS WELCOME SCREEN -->
+<div id="welcomeScreen" class="welcome-screen">
+  <div class="welcome-content">
+
+    <div class="welcome-logo">
+      <img src="media-minds-logo.jpg" alt="Media Minds">
+    </div>
+
+    <p class="welcome-eyebrow">CREATE • CAPTURE • INNOVATE</p>
+
+    <h1>Welcome to<br><span>Media Minds</span></h1>
+
+    <p class="welcome-text">
+      A creative space to learn photography, videography, editing and AI.
+    </p>
+
+    <div id="nameStep">
+      <label for="visitorName">What's your name?</label>
+
+      <input
+        id="visitorName"
+        type="text"
+        placeholder="Enter your name"
+        autocomplete="name"
+      >
+
+      <button id="welcomeContinue" type="button">
+        Continue →
+      </button>
+    </div>
+
+    <div id="greetingStep" class="greeting-step" hidden>
+      <h2>Hello, <span id="visitorGreeting"></span>! 👋</h2>
+
+      <p>
+        Welcome to <strong>Media Minds</strong>.<br>
+        Learn. Create. Capture. Innovate.
+      </p>
+
+      <button id="exploreMediaMinds" type="button">
+        Explore Media Minds →
+      </button>
+    </div>
+
+  </div>
+</div>
 <header class="site-header">
 <a class="brand" href="#home"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></a>
 <button class="menu-btn" aria-label="Open menu">☰</button>
