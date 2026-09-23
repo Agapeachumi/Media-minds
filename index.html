@@ -318,6 +318,56 @@
 </main>
 <footer><div class="brand"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></div><p>© 2026 Media Minds. Built for learning, creativity and responsible technology.</p></footer>
 <script>
+  // ================================
+// MEDIA MINDS WELCOME SCREEN
+// ================================
+
+const welcomeScreen = document.getElementById("welcomeScreen");
+const nameStep = document.getElementById("nameStep");
+const greetingStep = document.getElementById("greetingStep");
+const visitorName = document.getElementById("visitorName");
+const visitorGreeting = document.getElementById("visitorGreeting");
+const welcomeContinue = document.getElementById("welcomeContinue");
+const exploreMediaMinds = document.getElementById("exploreMediaMinds");
+
+if (
+  welcomeScreen &&
+  nameStep &&
+  greetingStep &&
+  visitorName &&
+  visitorGreeting &&
+  welcomeContinue &&
+  exploreMediaMinds
+) {
+
+  welcomeContinue.addEventListener("click", function () {
+    const name = visitorName.value.trim();
+
+    if (!name) {
+      visitorName.focus();
+      return;
+    }
+
+    visitorGreeting.textContent = name;
+
+    nameStep.hidden = true;
+    greetingStep.hidden = false;
+  });
+
+  visitorName.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      welcomeContinue.click();
+    }
+  });
+
+  exploreMediaMinds.addEventListener("click", function () {
+    welcomeScreen.classList.add("hidden");
+
+    setTimeout(function () {
+      welcomeScreen.style.display = "none";
+    }, 650);
+  });
+}
 (function(){
 const email="Mediamindsdmp@gmail.com",subject="Media Minds Enquiry";
 const webGmail="https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(email)+"&su="+encodeURIComponent(subject);
