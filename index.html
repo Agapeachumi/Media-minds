@@ -547,23 +547,31 @@ if (gltf.animations && gltf.animations.length) {
       mixer.clipAction(clip);
   });
 
-  window.mediaMindsPlayAnimation = function (name) {
-    if (!window.mediaMindsAnimations[name]) return;
+ window.mediaMindsRequestedAnimation = "Idle";
 
-    Object.values(window.mediaMindsAnimations).forEach(
-      function (action) {
-        action.stop();
-      }
-    );
+window.mediaMindsPlayAnimation = function (name) {
+  window.mediaMindsRequestedAnimation = name;
 
-    const action = window.mediaMindsAnimations[name];
+  if (!window.mediaMindsAnimations[name]) {
+    return;
+  }
 
-    action.reset();
-    action.play();
-  };
+  Object.values(window.mediaMindsAnimations).forEach(
+    function (action) {
+      action.stop();
+    }
+  );
 
+  const action = window.mediaMindsAnimations[name];
+
+  action.reset();
+  action.play();
+};
   // Start with Idle
   window.mediaMindsPlayAnimation("Idle");
+  window.mediaMindsPlayAnimation(
+  window.mediaMindsRequestedAnimation
+);
 }
       },
 
