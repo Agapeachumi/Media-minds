@@ -343,7 +343,7 @@
 <footer><div class="brand"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></div><p>© 2026 Media Minds. Built for learning, creativity and responsible technology.</p></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // ================================
+// ================================
 // MEDIA MINDS WELCOME SCREEN
 // ================================
 
@@ -357,7 +357,6 @@ const exploreMediaMinds = document.getElementById("exploreMediaMinds");
 const backToName = document.getElementById("backToName");
 const backToGreeting = document.getElementById("backToGreeting");
 
-// Supabase connection used only to record anonymous visitor names.
 const SUPABASE_URL = "https://byxiohhbqjygjpqfomsp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XyX3oKje8JVHXMo3qZ-HEg_cY9oc-Af";
 const supabaseClient = window.supabase
@@ -366,88 +365,55 @@ const supabaseClient = window.supabase
 
 async function recordVisitor(name) {
   if (!supabaseClient) return false;
-
   const { error } = await supabaseClient
     .from("visitor_entries")
     .insert({ name });
-
   if (error) {
     console.error("Visitor history error:", error);
     return false;
   }
-
   return true;
 }
 
-if (
-  welcomeScreen &&
-  nameStep &&
-  greetingStep &&
-  visitorName &&
-  visitorGreeting &&
-  welcomeContinue &&
-  exploreMediaMinds &&
-  backToName &&
-  backToGreeting
-) {
+if (welcomeScreen && nameStep && greetingStep && visitorName && visitorGreeting &&
+    welcomeContinue && exploreMediaMinds && backToName && backToGreeting) {
 
- welcomeContinue.addEventListener("click", async function () {
-  const name = visitorName.value.trim();
+  welcomeContinue.addEventListener("click", async function () {
+    const name = visitorName.value.trim();
+    if (!name) {
+      visitorName.focus();
+      return;
+    }
 
-  if (!name) {
-    visitorName.focus();
-    return;
-  }
+    // Start speech directly from the user's tap so mobile browsers allow it.
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const welcomeVoice = new SpeechSynthesisUtterance(
+        `Hello, ${name}! Welcome to Media Minds. Here you can learn photography, videography, editing and artificial intelligence. Learn, create, capture and innovate with Media Minds.`
+      );
+      welcomeVoice.lang = "en-IN";
+      welcomeVoice.rate = 0.88;
+      welcomeVoice.pitch = 1.04;
+      welcomeVoice.volume = 1;
+      window.speechSynthesis.speak(welcomeVoice);
+    }
 
-  // Save the visitor before moving to the greeting. The database supplies the
-  // official date/time/year through the entered_at default timestamp.
-  welcomeContinue.disabled = true;
-  const saved = await recordVisitor(name);
-  welcomeContinue.disabled = false;
+    // Show the greeting immediately; save the visit in the background.
+    visitorGreeting.textContent = name;
+    nameStep.hidden = true;
+    greetingStep.hidden = false;
+    welcomeContinue.disabled = true;
 
-  if (!saved) {
-    alert("We could not record your visit. Please check your internet connection and try again.");
-    return;
-  }
-
-  visitorGreeting.textContent = name;
-
-  nameStep.hidden = true;
-  greetingStep.hidden = false;
-
-  // Start speech immediately from the user's tap. Mobile browsers can block
-  // speech if it starts only after an awaited network request.
-  const spokenName = name.trim();
-  const welcomeVoice = new SpeechSynthesisUtterance(
-    `Hello, ${spokenName}! Welcome to Media Minds. Here you can learn photography, videography, editing and artificial intelligence. Learn, create, capture and innovate with Media Minds.`
-  );
-  welcomeVoice.lang = "en-IN";
-  welcomeVoice.rate = 0.88;
-  welcomeVoice.pitch = 1.04;
-  welcomeVoice.volume = 1;
-
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(welcomeVoice);
-  }
-
-  // Save the visitor after speech has been started.
-  welcomeContinue.disabled = true;
-  const saved = await recordVisitor(name);
-  welcomeContinue.disabled = false;
-
-  if (!saved) {
-    alert("We could not record your visit. Please check your internet connection and try again.");
-    return;
-  }
-
-  visitorGreeting.textContent = name;
-  nameStep.hidden = true;
-  greetingStep.hidden = false;
-  backToGreeting.hidden = true;
+    const saved = await recordVisitor(name);
+    welcomeContinue.disabled = false;
+    if (!saved) {
+      console.error("Visitor visit could not be recorded.");
+    }
+  });
 
   visitorName.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
+      event.preventDefault();
       welcomeContinue.click();
     }
   });
@@ -479,6 +445,7 @@ if (
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   });
 }
+
 (function(){
 const email="Mediamindsdmp@gmail.com",subject="Media Minds Enquiry";
 const webGmail="https://mail.google.com/mail/?view=cm&fs=1&to="+encodeURIComponent(email)+"&su="+encodeURIComponent(subject);
