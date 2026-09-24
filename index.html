@@ -229,12 +229,10 @@
 
 #character3D {
   display: none;
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 220px;
-  height: 280px;
+  position: relative;
+  width: 240px;
+  height: 290px;
+  margin: -8px auto 2px;
   justify-content: center;
   align-items: center;
   overflow: visible;
@@ -247,15 +245,11 @@
   height: 100%;
   display: block;
 }
-#characterCanvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
 
 @media (max-width: 600px) {
   #character3D {
-    height: 240px;
+    width: 210px;
+    height: 255px;
   }
 }
 </style>
@@ -264,10 +258,6 @@
   <!-- MEDIA MINDS WELCOME SCREEN -->
 <div id="welcomeScreen" class="welcome-screen">
   <div class="welcome-content">
-    <div id="character3D">
-  <canvas id="characterCanvas"></canvas>
-</div>
-
     <div class="welcome-logo">
       <img src="media-minds-logo.jpg" alt="Media Minds">
     </div>
@@ -526,6 +516,26 @@ import { GLTFLoader } from "https://esm.sh/three@0.180.0/examples/jsm/loaders/GL
     let mixer = null;
     let model = null;
 
+    // Animation controller is created before the model loads,
+    // so a fast click on Continue is remembered.
+    window.mediaMindsAnimations = {};
+    window.mediaMindsRequestedAnimation = "Idle";
+
+    window.mediaMindsPlayAnimation = function (name) {
+      window.mediaMindsRequestedAnimation = name;
+
+      const action = window.mediaMindsAnimations[name];
+      if (!action) return;
+
+      Object.values(window.mediaMindsAnimations).forEach(function (a) {
+        a.stop();
+      });
+
+      action.reset();
+      action.setLoop(THREE.LoopRepeat, Infinity);
+      action.play();
+    };
+
    loader.load(
   "rigged-model.glb",
 
@@ -533,59 +543,38 @@ import { GLTFLoader } from "https://esm.sh/three@0.180.0/examples/jsm/loaders/GL
         model = gltf.scene;
 
         // Automatically frame the full character
-// Character framing
-model.position.set(0, -0.8, 0);
-model.scale.set(1.0, 1.0, 1.0);
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+
+        model.position.x -= center.x;
+        model.position.z -= center.z;
+        model.position.y -= box.min.y;
+
+        const targetHeight = 2.65;
+        const scale = targetHeight / Math.max(size.y, 0.001);
+        model.scale.setScalar(scale);
+
+        // Keep the character slightly above the bottom of the canvas.
+        model.position.y = -1.18;
+
         scene.add(model);
 
-        // Animation system
-        // Animation system
-if (gltf.animations && gltf.animations.length) {
-  mixer = new THREE.AnimationMixer(model);
+            // Animation system
+        if (gltf.animations && gltf.animations.length) {
+          mixer = new THREE.AnimationMixer(model);
+          window.mediaMindsAnimations = {};
 
-  window.mediaMindsAnimations = {};
+          gltf.animations.forEach(function (clip) {
+            window.mediaMindsAnimations[clip.name] =
+              mixer.clipAction(clip);
+          });
 
-gltf.animations.forEach(function (clip) {
-  window.mediaMindsAnimations[clip.name] =
-    mixer.clipAction(clip);
-});
-
-// Animation controller
-window.mediaMindsPlayAnimation = function (name) {
-  const action = window.mediaMindsAnimations[name];
-
-  if (!action) {
-    console.log("Animation not found:", name);
-    return;
-  }
-
-  Object.values(window.mediaMindsAnimations).forEach(function (a) {
-    a.stop();
-  });
-
-  action.reset();
-  action.setLoop(THREE.LoopRepeat, Infinity);
-  action.play();
-};
-
-// TEST: play Wave when the model loads
-window.mediaMindsPlayAnimation("Wave");
-
-  Object.values(window.mediaMindsAnimations).forEach(
-    function (action) {
-      action.stop();
-    }
-  );
-
-  const action = window.mediaMindsAnimations[name];
-
-  action.reset();
-  action.play();
-};
-  // Start with Idle
-  window.mediaMindsPlayAnimation("Idle");
-);
-}
+          // Play the animation requested by the welcome screen.
+          window.mediaMindsPlayAnimation(
+            window.mediaMindsRequestedAnimation || "Idle"
+          );
+        }
       },
 
       undefined,
