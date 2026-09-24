@@ -31,6 +31,18 @@ body{margin:0;min-width:0;overflow-x:hidden}
 .portal-grid{align-items:start}
 @media(max-width:900px){.portal-grid{grid-template-columns:1fr}.media-admin-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.media-admin-grid{grid-template-columns:1fr}.portal-head{align-items:flex-start;flex-direction:column}}
+
+.visitor-history{margin:25px 0 30px}
+.visitor-history-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:14px}
+.visitor-history-head h2{margin:0}
+.visitor-history-table-wrap{overflow-x:auto;border:1px solid #e3e0d8;border-radius:14px;background:#fff}
+.visitor-history-table{width:100%;border-collapse:collapse;min-width:620px}
+.visitor-history-table th,.visitor-history-table td{padding:13px 15px;text-align:left;border-bottom:1px solid #eee8df}
+.visitor-history-table th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a6c50;background:#faf7f2}
+.visitor-history-table td{font-size:14px;color:#30363a}
+.visitor-history-table tr:last-child td{border-bottom:0}
+.visitor-count{font-size:12px;color:#7b8388;margin:0}
+@media(max-width:600px){.visitor-history-head{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
@@ -58,6 +70,24 @@ body{margin:0;min-width:0;overflow-x:hidden}
 <p id="signedInAs" class="body-copy"></p>
 </div>
 <button class="btn ghost" id="logoutBtn" type="button">Sign Out</button>
+</div>
+<div class="visitor-history">
+  <div class="visitor-history-head">
+    <div>
+      <h2>Visitor History</h2>
+      <p id="visitorCount" class="visitor-count">Loading visitor history…</p>
+    </div>
+    <button class="btn ghost" id="refreshVisitorsBtn" type="button">Refresh History</button>
+  </div>
+  <div class="visitor-history-table-wrap">
+    <table class="visitor-history-table">
+      <thead>
+        <tr><th>Visitor Name</th><th>Date</th><th>Time</th><th>Year</th></tr>
+      </thead>
+      <tbody id="visitorHistoryBody"></tbody>
+    </table>
+  </div>
+  <p id="visitorHistoryMessage" class="status"></p>
 </div>
 
 <div class="portal-grid">
@@ -107,6 +137,9 @@ const dashboard=document.getElementById("dashboard");
 const loginMessage=document.getElementById("loginMessage");
 const uploadMessage=document.getElementById("uploadMessage");
 const galleryMessage=document.getElementById("galleryMessage");
+const visitorHistoryBody=document.getElementById("visitorHistoryBody");
+const visitorHistoryMessage=document.getElementById("visitorHistoryMessage");
+const visitorCount=document.getElementById("visitorCount");
 let supabaseClient=null;
 
 function setStatus(el,message,type=""){
@@ -118,6 +151,7 @@ function showDashboard(user){
   dashboard.classList.remove("hidden");
   document.getElementById("signedInAs").textContent="Signed in as "+(user.email||OFFICIAL_EMAIL);
   loadAdminGallery();
+  loadVisitorHistory();
 }
 function showLogin(){
   dashboard.classList.add("hidden");
@@ -170,6 +204,8 @@ document.getElementById("logoutBtn").addEventListener("click",async()=>{
   showLogin();
 });
 
+document.getElementById("refreshVisitorsBtn").addEventListener("click",loadVisitorHistory);
+
 document.getElementById("uploadBtn").addEventListener("click",async()=>{
   if(!sdkReady()){setStatus(uploadMessage,"The login service could not load. Please refresh the page.","error");return;}
   const title=document.getElementById("title").value.trim();
@@ -193,6 +229,37 @@ document.getElementById("uploadBtn").addEventListener("click",async()=>{
   setStatus(uploadMessage,"Uploaded successfully. This project is now in the "+categoryLabel+" page.","ok");
   await loadAdminGallery();
 });
+
+
+async function loadVisitorHistory(){
+  if(!sdkReady() || !visitorHistoryBody) return;
+  visitorHistoryBody.innerHTML="";
+  setStatus(visitorHistoryMessage,"Loading…");
+  const {data,error}=await supabaseClient
+    .from("visitor_entries")
+    .select("id,name,entered_at")
+    .order("entered_at",{ascending:false});
+  if(error){
+    visitorCount.textContent="";
+    setStatus(visitorHistoryMessage,error.message,"error");
+    return;
+  }
+  visitorCount.textContent = `${data.length} visitor${data.length===1?"":"s"} recorded`;
+  setStatus(visitorHistoryMessage, data.length ? "" : "No visitors recorded yet.");
+  for(const item of data){
+    const entered=new Date(item.entered_at);
+    const date=entered.toLocaleDateString("en-IN",{day:"2-digit",month:"2-digit",year:"numeric"});
+    const time=entered.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    const year=entered.getFullYear();
+    const row=document.createElement("tr");
+    row.innerHTML="<td></td><td></td><td></td><td></td>";
+    row.cells[0].textContent=item.name;
+    row.cells[1].textContent=date;
+    row.cells[2].textContent=time;
+    row.cells[3].textContent=year;
+    visitorHistoryBody.appendChild(row);
+  }
+}
 
 async function getSignedUrl(path){
   const {data,error}=await supabaseClient.storage.from("media").createSignedUrl(path,3600);
