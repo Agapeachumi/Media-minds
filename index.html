@@ -375,42 +375,84 @@ async function recordVisitor(name) {
   return true;
 }
 
-function speakGreeting(name) {
-  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return false;
+let greetingAudio = null;
+let greetingAudioName = "";
+let greetingAudioReady = false;
+let greetingAudioRequest = 0;
+let greetingAudioTimer = null;
+
+async function prepareGreetingAudio(name) {
+  const cleanName = name.trim();
+  if (!cleanName) return false;
+
+  const requestId = ++greetingAudioRequest;
+  greetingAudioReady = false;
 
   try {
-    const synth = window.speechSynthesis;
-    synth.cancel();
-
-    // IMPORTANT: speak immediately from the Continue button tap.
-    // Waiting for voiceschanged can make mobile browsers lose the
-    // user's gesture and block speech.
-    const greeting = new SpeechSynthesisUtterance(
-      `Hello, ${name}! Welcome to Media Minds. Here you can learn photography, videography, editing and artificial intelligence. Learn, create, capture and innovate with Media Minds.`
+    const response = await fetch(
+      "https://byxiohhbqjygjpqfomsp.supabase.co/functions/v1/media-minds-greeting",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name: cleanName })
+      }
     );
-    greeting.lang = "en-IN";
-    greeting.rate = 0.88;
-    greeting.pitch = 1.04;
-    greeting.volume = 1;
 
-    // Use an already-loaded English voice when available, but NEVER wait for it.
-    const voices = synth.getVoices();
-    const voice = voices.find(v => /^en-IN$/i.test(v.lang))
-      || voices.find(v => /^en-GB$/i.test(v.lang))
-      || voices.find(v => /^en-US$/i.test(v.lang))
-      || voices.find(v => /^en/i.test(v.lang));
-    if (voice) greeting.voice = voice;
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Greeting audio could not be generated.");
+    }
 
-    synth.speak(greeting);
+    const audioBlob = await response.blob();
+
+    // Ignore an older request if the visitor changed their name.
+    if (requestId !== greetingAudioRequest) return false;
+
+    if (greetingAudio) {
+      greetingAudio.pause();
+      if (greetingAudio.src) URL.revokeObjectURL(greetingAudio.src);
+    }
+
+    greetingAudio = new Audio(URL.createObjectURL(audioBlob));
+    greetingAudio.preload = "auto";
+    greetingAudioName = cleanName;
+    greetingAudioReady = true;
     return true;
   } catch (error) {
-    console.error("Speech error:", error);
+    if (requestId === greetingAudioRequest) {
+      greetingAudioReady = false;
+      console.error("Male greeting audio error:", error);
+    }
     return false;
   }
 }
 
+function preloadGreetingForName(name) {
+  clearTimeout(greetingAudioTimer);
+  const cleanName = name.trim();
+
+  if (!cleanName) {
+    greetingAudioRequest++;
+    greetingAudioReady = false;
+    return;
+  }
+
+  // Generate the audio while the visitor is typing, so the audio
+  // is already loaded when they tap Continue. This is important
+  // for mobile browsers that restrict playback after async work.
+  greetingAudioTimer = setTimeout(() => {
+    prepareGreetingAudio(cleanName);
+  }, 650);
+}
+
 if (welcomeScreen && nameStep && greetingStep && visitorName && visitorGreeting &&
     welcomeContinue && exploreMediaMinds && backToName && backToGreeting) {
+
+  visitorName.addEventListener("input", function () {
+    preloadGreetingForName(visitorName.value);
+  });
 
   welcomeContinue.addEventListener("click", async function () {
     const name = visitorName.value.trim();
@@ -419,8 +461,26 @@ if (welcomeScreen && nameStep && greetingStep && visitorName && visitorGreeting 
       return;
     }
 
-    // Try to start speech directly from the user's tap.
-    speakGreeting(name);
+    // The audio is normally already prepared while the visitor was typing.
+    // Playing the already-loaded audio directly from this tap is important
+    // for mobile browser autoplay rules.
+    if (greetingAudioReady && greetingAudioName === name && greetingAudio) {
+      greetingAudio.currentTime = 0;
+      greetingAudio.play().catch(error => {
+        console.error("Mobile audio playback error:", error);
+      });
+    } else {
+      // If the visitor tapped very quickly, finish generating the audio.
+      // Some mobile browsers may require another user tap after async work;
+      // the normal typing/preload path avoids that situation.
+      const ready = await prepareGreetingAudio(name);
+      if (ready && greetingAudio) {
+        greetingAudio.currentTime = 0;
+        greetingAudio.play().catch(error => {
+          console.error("Mobile audio playback error:", error);
+        });
+      }
+    }
 
     // Show the greeting immediately; save the visit in the background.
     visitorGreeting.textContent = name;
@@ -456,7 +516,7 @@ if (welcomeScreen && nameStep && greetingStep && visitorName && visitorGreeting 
     welcomeScreen.classList.remove("hidden");
     welcomeScreen.style.display = "flex";
     backToGreeting.hidden = true;
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    if (greetingAudio) { greetingAudio.pause(); greetingAudio.currentTime = 0; }
     setTimeout(function () { visitorName.focus(); }, 50);
   });
 
@@ -466,7 +526,7 @@ if (welcomeScreen && nameStep && greetingStep && visitorName && visitorGreeting 
     nameStep.hidden = true;
     greetingStep.hidden = false;
     backToGreeting.hidden = true;
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    if (greetingAudio) { greetingAudio.pause(); greetingAudio.currentTime = 0; }
   });
 }
 
