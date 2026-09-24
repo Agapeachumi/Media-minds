@@ -542,19 +542,31 @@ if (gltf.animations && gltf.animations.length) {
 
   window.mediaMindsAnimations = {};
 
-  gltf.animations.forEach(function (clip) {
-    window.mediaMindsAnimations[clip.name] =
-      mixer.clipAction(clip);
-  });
+gltf.animations.forEach(function (clip) {
+  window.mediaMindsAnimations[clip.name] =
+    mixer.clipAction(clip);
+});
 
- window.mediaMindsRequestedAnimation = "Idle";
-
+// Animation controller
 window.mediaMindsPlayAnimation = function (name) {
-  window.mediaMindsRequestedAnimation = name;
+  const action = window.mediaMindsAnimations[name];
 
-  if (!window.mediaMindsAnimations[name]) {
+  if (!action) {
+    console.log("Animation not found:", name);
     return;
   }
+
+  Object.values(window.mediaMindsAnimations).forEach(function (a) {
+    a.stop();
+  });
+
+  action.reset();
+  action.setLoop(THREE.LoopRepeat, Infinity);
+  action.play();
+};
+
+// TEST: play Wave when the model loads
+window.mediaMindsPlayAnimation("Wave");
 
   Object.values(window.mediaMindsAnimations).forEach(
     function (action) {
