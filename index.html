@@ -369,28 +369,63 @@ if (
   exploreMediaMinds
 ) {
 
-  welcomeContinue.addEventListener("click", function () {
-    const name = visitorName.value.trim();
+ welcomeContinue.addEventListener("click", function () {
+  const name = visitorName.value.trim();
 
-    if (!name) {
-      visitorName.focus();
-      return;
-    }
+  if (!name) {
+    visitorName.focus();
+    return;
+  }
 
-    visitorGreeting.textContent = name;
+  visitorGreeting.textContent = name;
 
-    nameStep.hidden = true;
-    greetingStep.hidden = false;
-    const character3D = document.getElementById("character3D");
+  nameStep.hidden = true;
+  greetingStep.hidden = false;
 
-if (character3D) {
-  character3D.style.display = "flex";
+  const character3D = document.getElementById("character3D");
 
-  window.dispatchEvent(
-    new Event("mediaMindsCharacterShow")
+  if (character3D) {
+    character3D.style.display = "flex";
+
+    window.dispatchEvent(
+      new Event("mediaMindsCharacterShow")
+    );
+  }
+
+  // Play the Wave animation
+  if (window.mediaMindsPlayAnimation) {
+    window.mediaMindsPlayAnimation("Wave");
+  }
+
+  // Personalized voice greeting
+  const greeting = new SpeechSynthesisUtterance(
+    `Hello, ${name}! Welcome to Media Minds.`
   );
-}
-  });
+
+  greeting.rate = 0.9;
+  greeting.pitch = 1.05;
+  greeting.volume = 1;
+
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(greeting);
+
+  // Continue the introduction after the greeting
+  greeting.onend = function () {
+    const introduction = new SpeechSynthesisUtterance(
+      "Here you can learn photography, videography, editing and artificial intelligence. Learn, create, capture and innovate with Media Minds."
+    );
+
+    introduction.rate = 0.88;
+    introduction.pitch = 1.02;
+    introduction.volume = 1;
+
+    window.speechSynthesis.speak(introduction);
+
+    if (window.mediaMindsPlayAnimation) {
+      window.mediaMindsPlayAnimation("Idle");
+    }
+  };
+});
 
   visitorName.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
