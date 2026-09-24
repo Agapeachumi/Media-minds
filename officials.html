@@ -38,6 +38,7 @@ body{margin:0;min-width:0;overflow-x:hidden}
 .visitor-history-table-wrap{overflow-x:auto;border:1px solid #e3e0d8;border-radius:14px;background:#fff}
 .visitor-history-table{width:100%;border-collapse:collapse;min-width:620px}
 .visitor-history-table th,.visitor-history-table td{padding:13px 15px;text-align:left;border-bottom:1px solid #eee8df}
+.visitor-delete-btn{border:1px solid #d8b7b0;background:#fff7f5;color:#8a4036;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer}.visitor-delete-btn:hover{background:#fceeea}
 .visitor-history-table th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8a6c50;background:#faf7f2}
 .visitor-history-table td{font-size:14px;color:#30363a}
 .visitor-history-table tr:last-child td{border-bottom:0}
@@ -82,7 +83,7 @@ body{margin:0;min-width:0;overflow-x:hidden}
   <div class="visitor-history-table-wrap">
     <table class="visitor-history-table">
       <thead>
-        <tr><th>Visitor Name</th><th>Date</th><th>Time</th><th>Year</th></tr>
+        <tr><th>Visitor Name</th><th>Date</th><th>Time</th><th>Year</th><th>Action</th></tr>
       </thead>
       <tbody id="visitorHistoryBody"></tbody>
     </table>
@@ -252,13 +253,33 @@ async function loadVisitorHistory(){
     const time=entered.toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
     const year=entered.getFullYear();
     const row=document.createElement("tr");
-    row.innerHTML="<td></td><td></td><td></td><td></td>";
+    row.innerHTML="<td></td><td></td><td></td><td></td><td></td>";
     row.cells[0].textContent=item.name;
     row.cells[1].textContent=date;
     row.cells[2].textContent=time;
     row.cells[3].textContent=year;
+    const deleteBtn=document.createElement("button");
+    deleteBtn.type="button";
+    deleteBtn.className="visitor-delete-btn";
+    deleteBtn.textContent="Delete";
+    deleteBtn.addEventListener("click",()=>deleteVisitor(item));
+    row.cells[4].appendChild(deleteBtn);
     visitorHistoryBody.appendChild(row);
   }
+}
+
+async function deleteVisitor(item){
+  if(!sdkReady()) return;
+  const confirmed=confirm(`Delete the visitor record for "${item.name}"?`);
+  if(!confirmed) return;
+  setStatus(visitorHistoryMessage,"Deleting…");
+  const {error}=await supabaseClient.from("visitor_entries").delete().eq("id",item.id);
+  if(error){
+    setStatus(visitorHistoryMessage,error.message,"error");
+    return;
+  }
+  setStatus(visitorHistoryMessage,"Visitor record deleted.","ok");
+  await loadVisitorHistory();
 }
 
 async function getSignedUrl(path){
