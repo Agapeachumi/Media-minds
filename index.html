@@ -285,6 +285,7 @@
         Learn. Create. Capture. Innovate.
       </p>
 
+      <button id="hearGreeting" class="hear-greeting-btn" type="button">🔊 Hear Greeting</button>
       <button id="exploreMediaMinds" type="button">
         Explore Media Minds →
       </button>
@@ -356,6 +357,7 @@ const welcomeContinue = document.getElementById("welcomeContinue");
 const exploreMediaMinds = document.getElementById("exploreMediaMinds");
 const backToName = document.getElementById("backToName");
 const backToGreeting = document.getElementById("backToGreeting");
+const hearGreeting = document.getElementById("hearGreeting");
 
 const SUPABASE_URL = "https://byxiohhbqjygjpqfomsp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XyX3oKje8JVHXMo3qZ-HEg_cY9oc-Af";
@@ -375,8 +377,28 @@ async function recordVisitor(name) {
   return true;
 }
 
+function speakGreeting(name) {
+  if (!("speechSynthesis" in window)) return false;
+  try {
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.resume();
+    const utterance = new SpeechSynthesisUtterance(
+      `Hello, ${name}! Welcome to Media Minds. Here you can learn photography, videography, editing and artificial intelligence. Learn, create, capture and innovate with Media Minds.`
+    );
+    utterance.lang = "en-IN";
+    utterance.rate = 0.88;
+    utterance.pitch = 1.04;
+    utterance.volume = 1;
+    window.speechSynthesis.speak(utterance);
+    return true;
+  } catch (error) {
+    console.error("Speech error:", error);
+    return false;
+  }
+}
+
 if (welcomeScreen && nameStep && greetingStep && visitorName && visitorGreeting &&
-    welcomeContinue && exploreMediaMinds && backToName && backToGreeting) {
+    welcomeContinue && exploreMediaMinds && backToName && backToGreeting && hearGreeting) {
 
   welcomeContinue.addEventListener("click", async function () {
     const name = visitorName.value.trim();
@@ -385,18 +407,8 @@ if (welcomeScreen && nameStep && greetingStep && visitorName && visitorGreeting 
       return;
     }
 
-    // Start speech directly from the user's tap so mobile browsers allow it.
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const welcomeVoice = new SpeechSynthesisUtterance(
-        `Hello, ${name}! Welcome to Media Minds. Here you can learn photography, videography, editing and artificial intelligence. Learn, create, capture and innovate with Media Minds.`
-      );
-      welcomeVoice.lang = "en-IN";
-      welcomeVoice.rate = 0.88;
-      welcomeVoice.pitch = 1.04;
-      welcomeVoice.volume = 1;
-      window.speechSynthesis.speak(welcomeVoice);
-    }
+    // Try to start speech directly from the user's tap.
+    speakGreeting(name);
 
     // Show the greeting immediately; save the visit in the background.
     visitorGreeting.textContent = name;
@@ -409,6 +421,11 @@ if (welcomeScreen && nameStep && greetingStep && visitorName && visitorGreeting 
     if (!saved) {
       console.error("Visitor visit could not be recorded.");
     }
+  });
+
+  hearGreeting.addEventListener("click", function () {
+    const name = visitorGreeting.textContent.trim() || visitorName.value.trim();
+    if (name) speakGreeting(name);
   });
 
   visitorName.addEventListener("keydown", function (event) {
