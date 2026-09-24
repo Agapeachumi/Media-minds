@@ -521,21 +521,9 @@ import { GLTFLoader } from "https://esm.sh/three@0.180.0/examples/jsm/loaders/GL
         model = gltf.scene;
 
         // Automatically frame the full character
-const box = new THREE.Box3().setFromObject(model);
-const center = box.getCenter(new THREE.Vector3());
-const size = box.getSize(new THREE.Vector3());
-
-model.position.x -= center.x;
-model.position.y -= box.min.y;
-model.position.z -= center.z;
-
-const characterHeight = size.y;
-const targetHeight = 2.6;
-
-const scale = targetHeight / characterHeight;
-model.scale.set(scale, scale, scale);
-
-model.position.y = -1.25;
+// Character framing
+model.position.set(0, -0.8, 0);
+model.scale.set(0.35, 0.35, 0.35);
         scene.add(model);
 
         // Animation system
