@@ -542,6 +542,11 @@ import { GLTFLoader } from "https://esm.sh/three@0.180.0/examples/jsm/loaders/GL
 
     window.addEventListener("resize", resizeCharacter);
     resizeCharacter();
+    window.addEventListener("mediaMindsCharacterShow", function () {
+  requestAnimationFrame(function () {
+    resizeCharacter();
+  });
+});
   }
 </script>
   
