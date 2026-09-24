@@ -223,35 +223,6 @@
     font-size: 16px;
   }
 }
-  /* ================================
-   3D MEDIA MINDS CHARACTER
-   ================================ */
-
-#character3D {
-  display: none;
-  position: relative;
-  width: 240px;
-  height: 290px;
-  margin: -8px auto 2px;
-  justify-content: center;
-  align-items: center;
-  overflow: visible;
-  pointer-events: none;
-  z-index: 5;
-}
-
-#characterCanvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-@media (max-width: 600px) {
-  #character3D {
-    width: 210px;
-    height: 255px;
-  }
-}
 </style>
 </head>
 <body>
@@ -276,6 +247,7 @@
       <input
         id="visitorName"
         type="text"
+        maxlength="100"
         placeholder="Enter your name"
         autocomplete="name"
       >
@@ -283,13 +255,12 @@
       <button id="welcomeContinue" type="button">
         Continue →
       </button>
+
+      <a class="welcome-officials" href="officials.html">Officials Login</a>
     </div>
 
     <div id="greetingStep" class="greeting-step" hidden>
-        <div id="character3D">
-    <canvas id="characterCanvas"></canvas>
-  </div>
-      <h2>Hello, <span id="visitorGreeting"></span>! 👋</h2>
+<h2>Hello, <span id="visitorGreeting"></span>! 👋</h2>
 
       <p>
         Welcome to <strong>Media Minds</strong>.<br>
@@ -348,6 +319,7 @@
 </section>
 </main>
 <footer><div class="brand"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></div><p>© 2026 Media Minds. Built for learning, creativity and responsible technology.</p></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // ================================
 // MEDIA MINDS WELCOME SCREEN
@@ -361,6 +333,28 @@ const visitorGreeting = document.getElementById("visitorGreeting");
 const welcomeContinue = document.getElementById("welcomeContinue");
 const exploreMediaMinds = document.getElementById("exploreMediaMinds");
 
+// Supabase connection used only to record anonymous visitor names.
+const SUPABASE_URL = "https://byxiohhbqjygjpqfomsp.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XyX3oKje8JVHXMo3qZ-HEg_cY9oc-Af";
+const supabaseClient = window.supabase
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+  : null;
+
+async function recordVisitor(name) {
+  if (!supabaseClient) return false;
+
+  const { error } = await supabaseClient
+    .from("visitor_entries")
+    .insert({ name });
+
+  if (error) {
+    console.error("Visitor history error:", error);
+    return false;
+  }
+
+  return true;
+}
+
 if (
   welcomeScreen &&
   nameStep &&
@@ -371,7 +365,7 @@ if (
   exploreMediaMinds
 ) {
 
- welcomeContinue.addEventListener("click", function () {
+ welcomeContinue.addEventListener("click", async function () {
   const name = visitorName.value.trim();
 
   if (!name) {
@@ -379,25 +373,21 @@ if (
     return;
   }
 
+  // Save the visitor before moving to the greeting. The database supplies the
+  // official date/time/year through the entered_at default timestamp.
+  welcomeContinue.disabled = true;
+  const saved = await recordVisitor(name);
+  welcomeContinue.disabled = false;
+
+  if (!saved) {
+    alert("We could not record your visit. Please check your internet connection and try again.");
+    return;
+  }
+
   visitorGreeting.textContent = name;
 
   nameStep.hidden = true;
   greetingStep.hidden = false;
-
-  const character3D = document.getElementById("character3D");
-
-  if (character3D) {
-  character3D.style.display = "flex";
-
-  window.dispatchEvent(
-    new Event("mediaMindsCharacterShow")
-  );
-}
-
-// Start the character's greeting/play sequence
-if (window.mediaMindsStartCharacterPlay) {
-  window.mediaMindsStartCharacterPlay();
-}
 
   // Personalized voice greeting
  const spokenName = name.trim();
@@ -425,10 +415,6 @@ greeting.volume = 1;
     introduction.volume = 1;
 
     window.speechSynthesis.speak(introduction);
-
-    if (window.mediaMindsPlayAnimation) {
-      window.mediaMindsPlayAnimation("Idle");
-    }
   };
 });
 
@@ -439,10 +425,6 @@ greeting.volume = 1;
   });
 
   exploreMediaMinds.addEventListener("click", function () {
-    if (window.mediaMindsStopCharacterPlay) {
-      window.mediaMindsStopCharacterPlay();
-    }
-
     welcomeScreen.classList.add("hidden");
 
     setTimeout(function () {
@@ -471,266 +453,7 @@ btn.addEventListener("click",function(e){
 })();
 </script>
 <script src="script.js"></script>
-  <!-- 3D MEDIA MINDS CHARACTER -->
-<script type="module">
-  import * as THREE from "https://esm.sh/three@0.180.0";
-  import { GLTFLoader } from "https://esm.sh/three@0.180.0/examples/jsm/loaders/GLTFLoader.js";
 
-  const canvas = document.getElementById("characterCanvas");
-
-  if (canvas) {
-    const scene = new THREE.Scene();
-
-    const camera = new THREE.PerspectiveCamera(
-      30,
-      canvas.clientWidth / canvas.clientHeight,
-      0.1,
-      100
-    );
-    camera.position.set(0, 1.35, 5.8);
-
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      alpha: true,
-      antialias: true
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 2.2);
-    scene.add(ambientLight);
-
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2);
-    keyLight.position.set(2, 4, 4);
-    scene.add(keyLight);
-
-    const fillLight = new THREE.DirectionalLight(0xffffff, 1);
-    fillLight.position.set(-3, 2, 2);
-    scene.add(fillLight);
-
-    const loader = new GLTFLoader();
-    let mixer = null;
-    let model = null;
-    let playTimer = null;
-    let playStarted = false;
-    let movementFrame = null;
-    let movementToken = 0;
-
-    window.mediaMindsAnimations = {};
-    window.mediaMindsCurrentAnimation = "Idle";
-
-    window.mediaMindsPlayAnimation = function (name) {
-      window.mediaMindsCurrentAnimation = name;
-
-      const action = window.mediaMindsAnimations[name];
-      if (!action) return;
-
-      Object.values(window.mediaMindsAnimations).forEach(function (a) {
-        a.stop();
-      });
-
-      action.reset();
-      action.setLoop(THREE.LoopRepeat, Infinity);
-      action.play();
-    };
-
-    function stopMovement() {
-      movementToken += 1;
-      if (movementFrame) {
-        cancelAnimationFrame(movementFrame);
-        movementFrame = null;
-      }
-    }
-
-    function moveCharacterTo(targetX, duration, rotateTo) {
-      return new Promise(function (resolve) {
-        if (!model) {
-          resolve();
-          return;
-        }
-
-        stopMovement();
-        const token = movementToken;
-        const startX = model.position.x;
-        const startRotation = model.rotation.y;
-        const startTime = performance.now();
-        const endRotation = rotateTo == null ? startRotation : rotateTo;
-
-        function step(now) {
-          if (token !== movementToken || !model) {
-            resolve();
-            return;
-          }
-
-          const progress = Math.min((now - startTime) / duration, 1);
-          const eased = progress < 0.5
-            ? 2 * progress * progress
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-
-          model.position.x = startX + (targetX - startX) * eased;
-
-          if (rotateTo != null) {
-            model.rotation.y = startRotation + (endRotation - startRotation) * eased;
-          }
-
-          if (progress < 1) {
-            movementFrame = requestAnimationFrame(step);
-          } else {
-            movementFrame = null;
-            resolve();
-          }
-        }
-
-        movementFrame = requestAnimationFrame(step);
-      });
-    }
-
-    function wait(ms) {
-      return new Promise(function (resolve) {
-        playTimer = setTimeout(resolve, ms);
-      });
-    }
-
-    async function characterPlayLoop() {
-      if (!playStarted) return;
-
-      // 1. Friendly wave
-      window.mediaMindsPlayAnimation("Wave");
-      await wait(2600);
-      if (!playStarted) return;
-
-      // 2. Walk to the right
-      window.mediaMindsPlayAnimation("Walk");
-      await moveCharacterTo(0.55, 3600, 0);
-      if (!playStarted) return;
-
-      // 3. Full rotation
-      window.mediaMindsPlayAnimation("Idle");
-      const currentRotation = model ? model.rotation.y : 0;
-      await moveCharacterTo(model ? model.position.x : 0, 1800, currentRotation + Math.PI * 2);
-      if (!playStarted) return;
-
-      // 4. Walk back to the left
-      window.mediaMindsPlayAnimation("Walk");
-      await moveCharacterTo(-0.55, 3600, Math.PI);
-      if (!playStarted) return;
-
-      // 5. Rotate again to face forward
-      window.mediaMindsPlayAnimation("Idle");
-      const secondRotation = model ? model.rotation.y : Math.PI;
-      await moveCharacterTo(model ? model.position.x : 0, 1200, secondRotation + Math.PI);
-      if (!playStarted) return;
-
-      // 6. Finish with another wave, then repeat
-      window.mediaMindsPlayAnimation("Wave");
-      await wait(2200);
-
-      if (playStarted) {
-        characterPlayLoop();
-      }
-    }
-
-    window.mediaMindsStartCharacterPlay = function () {
-      if (playStarted) return;
-      playStarted = true;
-      characterPlayLoop();
-    };
-
-    window.mediaMindsStopCharacterPlay = function () {
-      playStarted = false;
-      if (playTimer) {
-        clearTimeout(playTimer);
-        playTimer = null;
-      }
-      stopMovement();
-      if (model) {
-        model.position.x = 0;
-        model.rotation.y = 0;
-      }
-      window.mediaMindsPlayAnimation("Idle");
-    };
-
-    loader.load(
-      "rigged-model.glb",
-      function (gltf) {
-        model = gltf.scene;
-
-        const box = new THREE.Box3().setFromObject(model);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-
-        model.position.set(-center.x, -box.min.y - 1.05, -center.z);
-
-        const targetHeight = 2.8;
-        const scale = targetHeight / Math.max(size.y, 0.001);
-        model.scale.setScalar(scale);
-        model.position.y = -1.05;
-
-        scene.add(model);
-
-        if (gltf.animations && gltf.animations.length) {
-          mixer = new THREE.AnimationMixer(model);
-          window.mediaMindsAnimations = {};
-
-          gltf.animations.forEach(function (clip) {
-            window.mediaMindsAnimations[clip.name] =
-              mixer.clipAction(clip);
-          });
-
-          window.mediaMindsPlayAnimation(
-            window.mediaMindsCurrentAnimation || "Idle"
-          );
-
-          if (playStarted) {
-            window.mediaMindsPlayAnimation("Wave");
-          }
-        }
-      },
-      undefined,
-      function (error) {
-        console.error(
-          "Media Minds 3D character failed to load:",
-          error
-        );
-      }
-    );
-
-    const clock = new THREE.Clock();
-
-    function animate() {
-      requestAnimationFrame(animate);
-      const delta = clock.getDelta();
-
-      if (mixer) {
-        mixer.update(delta);
-      }
-
-      renderer.render(scene, camera);
-    }
-
-    animate();
-
-    function resizeCharacter() {
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      if (!width || !height) return;
-
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(width, height, false);
-    }
-
-    window.addEventListener("resize", resizeCharacter);
-    resizeCharacter();
-
-    window.addEventListener("mediaMindsCharacterShow", function () {
-      requestAnimationFrame(function () {
-        resizeCharacter();
-      });
-    });
-  }
-</script>
   
 </body>
 </html>
