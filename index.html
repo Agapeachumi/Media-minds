@@ -223,12 +223,41 @@
     font-size: 16px;
   }
 }
+  /* ================================
+   3D MEDIA MINDS CHARACTER
+   ================================ */
+
+#character3D {
+  width: 100%;
+  height: 300px;
+  margin: 0 auto 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#characterCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@media (max-width: 600px) {
+  #character3D {
+    height: 240px;
+  }
+}
 </style>
 </head>
 <body>
   <!-- MEDIA MINDS WELCOME SCREEN -->
 <div id="welcomeScreen" class="welcome-screen">
   <div class="welcome-content">
+    <div id="character3D">
+  <canvas id="characterCanvas"></canvas>
+</div>
 
     <div class="welcome-logo">
       <img src="media-minds-logo.jpg" alt="Media Minds">
@@ -389,5 +418,123 @@ btn.addEventListener("click",function(e){
 })();
 </script>
 <script src="script.js"></script>
+  <!-- 3D MEDIA MINDS CHARACTER -->
+<script type="module">
+ import * as THREE from "https://esm.sh/three@0.180.0";
+import { GLTFLoader } from "https://esm.sh/three@0.180.0/examples/jsm/loaders/GLTFLoader.js";
+  const canvas = document.getElementById("characterCanvas");
+
+  if (canvas) {
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(
+      30,
+      canvas.clientWidth / canvas.clientHeight,
+      0.1,
+      100
+    );
+
+    camera.position.set(0, 1.2, 4.5);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      alpha: true,
+      antialias: true
+    });
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(
+      canvas.clientWidth,
+      canvas.clientHeight,
+      false
+    );
+
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 2.2);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2);
+    keyLight.position.set(2, 4, 4);
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xffffff, 1);
+    fillLight.position.set(-3, 2, 2);
+    scene.add(fillLight);
+
+    const loader = new GLTFLoader();
+
+    let mixer = null;
+    let model = null;
+
+    loader.load(
+      "assets/rigged-model.glb",
+
+      function (gltf) {
+        model = gltf.scene;
+
+        model.position.set(0, -1.25, 0);
+        model.scale.set(1.35, 1.35, 1.35);
+
+        scene.add(model);
+
+        // Animation system
+        if (gltf.animations && gltf.animations.length) {
+          mixer = new THREE.AnimationMixer(model);
+
+          const waveClip = THREE.AnimationClip.findByName(
+            gltf.animations,
+            "Wave"
+          );
+
+          if (waveClip) {
+            const waveAction = mixer.clipAction(waveClip);
+            waveAction.setLoop(THREE.LoopRepeat, Infinity);
+            waveAction.play();
+          }
+        }
+      },
+
+      undefined,
+
+      function (error) {
+        console.error("Media Minds 3D character failed to load:", error);
+      }
+    );
+
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = clock.getDelta();
+
+      if (mixer) {
+        mixer.update(delta);
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    function resizeCharacter() {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+
+      if (!width || !height) return;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+
+      renderer.setSize(width, height, false);
+    }
+
+    window.addEventListener("resize", resizeCharacter);
+    resizeCharacter();
+  }
+</script>
+  
 </body>
 </html>
