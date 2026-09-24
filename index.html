@@ -398,13 +398,16 @@ if (
   }
 
   // Personalized voice greeting
-  const greeting = new SpeechSynthesisUtterance(
-    `Hello, ${name}! Welcome to Media Minds.`
-  );
+ const spokenName = name.trim();
 
-  greeting.rate = 0.9;
-  greeting.pitch = 1.05;
-  greeting.volume = 1;
+const greeting = new SpeechSynthesisUtterance(
+  `Hello, ${spokenName}! Welcome to Media Minds.`
+);
+
+greeting.lang = "en-IN";
+greeting.rate = 0.88;
+greeting.pitch = 1.05;
+greeting.volume = 1;
 
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(greeting);
