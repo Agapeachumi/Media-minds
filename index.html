@@ -394,17 +394,17 @@ if (
   const character3D = document.getElementById("character3D");
 
   if (character3D) {
-    character3D.style.display = "flex";
+  character3D.style.display = "flex";
 
-    window.dispatchEvent(
-      new Event("mediaMindsCharacterShow")
-    );
-  }
+  window.dispatchEvent(
+    new Event("mediaMindsCharacterShow")
+  );
+}
 
-  // Play the Wave animation
-  if (window.mediaMindsPlayAnimation) {
-    window.mediaMindsPlayAnimation("Wave");
-  }
+// Play the Wave animation
+if (window.mediaMindsPlayAnimation) {
+  window.mediaMindsPlayAnimation("Wave");
+}
 
   // Personalized voice greeting
  const spokenName = name.trim();
