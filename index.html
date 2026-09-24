@@ -285,7 +285,6 @@
         Learn. Create. Capture. Innovate.
       </p>
 
-      <button id="hearGreeting" class="hear-greeting-btn" type="button">🔊 Hear Greeting</button>
       <button id="exploreMediaMinds" type="button">
         Explore Media Minds →
       </button>
@@ -357,7 +356,6 @@ const welcomeContinue = document.getElementById("welcomeContinue");
 const exploreMediaMinds = document.getElementById("exploreMediaMinds");
 const backToName = document.getElementById("backToName");
 const backToGreeting = document.getElementById("backToGreeting");
-const hearGreeting = document.getElementById("hearGreeting");
 
 const SUPABASE_URL = "https://byxiohhbqjygjpqfomsp.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_XyX3oKje8JVHXMo3qZ-HEg_cY9oc-Af";
@@ -378,18 +376,32 @@ async function recordVisitor(name) {
 }
 
 function speakGreeting(name) {
-  if (!("speechSynthesis" in window)) return false;
+  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return false;
+
   try {
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.resume();
-    const utterance = new SpeechSynthesisUtterance(
+    const synth = window.speechSynthesis;
+    synth.cancel();
+
+    // IMPORTANT: speak immediately from the Continue button tap.
+    // Waiting for voiceschanged can make mobile browsers lose the
+    // user's gesture and block speech.
+    const greeting = new SpeechSynthesisUtterance(
       `Hello, ${name}! Welcome to Media Minds. Here you can learn photography, videography, editing and artificial intelligence. Learn, create, capture and innovate with Media Minds.`
     );
-    utterance.lang = "en-IN";
-    utterance.rate = 0.88;
-    utterance.pitch = 1.04;
-    utterance.volume = 1;
-    window.speechSynthesis.speak(utterance);
+    greeting.lang = "en-IN";
+    greeting.rate = 0.88;
+    greeting.pitch = 1.04;
+    greeting.volume = 1;
+
+    // Use an already-loaded English voice when available, but NEVER wait for it.
+    const voices = synth.getVoices();
+    const voice = voices.find(v => /^en-IN$/i.test(v.lang))
+      || voices.find(v => /^en-GB$/i.test(v.lang))
+      || voices.find(v => /^en-US$/i.test(v.lang))
+      || voices.find(v => /^en/i.test(v.lang));
+    if (voice) greeting.voice = voice;
+
+    synth.speak(greeting);
     return true;
   } catch (error) {
     console.error("Speech error:", error);
@@ -398,7 +410,7 @@ function speakGreeting(name) {
 }
 
 if (welcomeScreen && nameStep && greetingStep && visitorName && visitorGreeting &&
-    welcomeContinue && exploreMediaMinds && backToName && backToGreeting && hearGreeting) {
+    welcomeContinue && exploreMediaMinds && backToName && backToGreeting) {
 
   welcomeContinue.addEventListener("click", async function () {
     const name = visitorName.value.trim();
@@ -421,11 +433,6 @@ if (welcomeScreen && nameStep && greetingStep && visitorName && visitorGreeting 
     if (!saved) {
       console.error("Visitor visit could not be recorded.");
     }
-  });
-
-  hearGreeting.addEventListener("click", function () {
-    const name = visitorGreeting.textContent.trim() || visitorName.value.trim();
-    if (name) speakGreeting(name);
   });
 
   visitorName.addEventListener("keydown", function (event) {
