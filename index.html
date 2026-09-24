@@ -524,20 +524,35 @@ import { GLTFLoader } from "https://esm.sh/three@0.180.0/examples/jsm/loaders/GL
         scene.add(model);
 
         // Animation system
-        if (gltf.animations && gltf.animations.length) {
-          mixer = new THREE.AnimationMixer(model);
+        // Animation system
+if (gltf.animations && gltf.animations.length) {
+  mixer = new THREE.AnimationMixer(model);
 
-          const waveClip = THREE.AnimationClip.findByName(
-            gltf.animations,
-            "Wave"
-          );
+  window.mediaMindsAnimations = {};
 
-          if (waveClip) {
-            const waveAction = mixer.clipAction(waveClip);
-            waveAction.setLoop(THREE.LoopRepeat, Infinity);
-            waveAction.play();
-          }
-        }
+  gltf.animations.forEach(function (clip) {
+    window.mediaMindsAnimations[clip.name] =
+      mixer.clipAction(clip);
+  });
+
+  window.mediaMindsPlayAnimation = function (name) {
+    if (!window.mediaMindsAnimations[name]) return;
+
+    Object.values(window.mediaMindsAnimations).forEach(
+      function (action) {
+        action.stop();
+      }
+    );
+
+    const action = window.mediaMindsAnimations[name];
+
+    action.reset();
+    action.play();
+  };
+
+  // Start with Idle
+  window.mediaMindsPlayAnimation("Idle");
+}
       },
 
       undefined,
