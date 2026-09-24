@@ -158,6 +158,24 @@
   background: #987158;
 }
 
+.welcome-back-btn, .site-back-btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  padding:11px 18px; border:1px solid #d8d1c8; border-radius:10px;
+  background:#fff; color:#17232d; font:inherit; font-weight:700; cursor:pointer;
+  transition:transform .2s ease, background .2s ease, border-color .2s ease;
+}
+.welcome-back-btn:hover, .site-back-btn:hover {
+  transform:translateY(-2px); background:#f8f3ee; border-color:#987158;
+}
+.greeting-back-wrap { margin-top:12px; }
+.site-back-btn {
+  position:fixed; top:92px; left:22px; z-index:50;
+  box-shadow:0 8px 24px rgba(23,35,45,.08);
+}
+@media (max-width:600px) {
+  .site-back-btn { top:82px; left:14px; padding:9px 14px; font-size:14px; }
+}
+
 .greeting-step {
   animation: greetingAppear .5s ease both;
 }
@@ -270,11 +288,15 @@
       <button id="exploreMediaMinds" type="button">
         Explore Media Minds →
       </button>
+      <div class="greeting-back-wrap">
+        <button id="backToName" class="welcome-back-btn" type="button">← Back</button>
+      </div>
     </div>
 
   </div>
 </div>
 <header class="site-header">
+<button id="backToGreeting" class="site-back-btn" type="button" hidden>← Back to Greeting</button>
 <a class="brand" href="#home"><img class="site-logo" src="media-minds-logo.jpg" alt="Media Minds logo"><span><strong>Media Minds</strong><small>Creative Media & AI</small></span></a>
 <button class="menu-btn" aria-label="Open menu">☰</button>
 <nav class="nav"><a href="#home">Home</a><a href="#about">About</a><a href="#courses">Courses</a><a href="#gallery">Gallery</a><a href="#contact">Contact</a><a class="nav-login" href="officials.html">Officials</a></nav>
@@ -332,6 +354,8 @@ const visitorName = document.getElementById("visitorName");
 const visitorGreeting = document.getElementById("visitorGreeting");
 const welcomeContinue = document.getElementById("welcomeContinue");
 const exploreMediaMinds = document.getElementById("exploreMediaMinds");
+const backToName = document.getElementById("backToName");
+const backToGreeting = document.getElementById("backToGreeting");
 
 // Supabase connection used only to record anonymous visitor names.
 const SUPABASE_URL = "https://byxiohhbqjygjpqfomsp.supabase.co";
@@ -362,7 +386,9 @@ if (
   visitorName &&
   visitorGreeting &&
   welcomeContinue &&
-  exploreMediaMinds
+  exploreMediaMinds &&
+  backToName &&
+  backToGreeting
 ) {
 
  welcomeContinue.addEventListener("click", async function () {
@@ -389,34 +415,36 @@ if (
   nameStep.hidden = true;
   greetingStep.hidden = false;
 
-  // Personalized voice greeting
- const spokenName = name.trim();
+  // Start speech immediately from the user's tap. Mobile browsers can block
+  // speech if it starts only after an awaited network request.
+  const spokenName = name.trim();
+  const welcomeVoice = new SpeechSynthesisUtterance(
+    `Hello, ${spokenName}! Welcome to Media Minds. Here you can learn photography, videography, editing and artificial intelligence. Learn, create, capture and innovate with Media Minds.`
+  );
+  welcomeVoice.lang = "en-IN";
+  welcomeVoice.rate = 0.88;
+  welcomeVoice.pitch = 1.04;
+  welcomeVoice.volume = 1;
 
-const greeting = new SpeechSynthesisUtterance(
-  `Hello, ${spokenName}! Welcome to Media Minds.`
-);
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(welcomeVoice);
+  }
 
-greeting.lang = "en-IN";
-greeting.rate = 0.88;
-greeting.pitch = 1.05;
-greeting.volume = 1;
+  // Save the visitor after speech has been started.
+  welcomeContinue.disabled = true;
+  const saved = await recordVisitor(name);
+  welcomeContinue.disabled = false;
 
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(greeting);
+  if (!saved) {
+    alert("We could not record your visit. Please check your internet connection and try again.");
+    return;
+  }
 
-  // Continue the introduction after the greeting
-  greeting.onend = function () {
-    const introduction = new SpeechSynthesisUtterance(
-      "Here you can learn photography, videography, editing and artificial intelligence. Learn, create, capture and innovate with Media Minds."
-    );
-
-    introduction.rate = 0.88;
-    introduction.pitch = 1.02;
-    introduction.volume = 1;
-
-    window.speechSynthesis.speak(introduction);
-  };
-});
+  visitorGreeting.textContent = name;
+  nameStep.hidden = true;
+  greetingStep.hidden = false;
+  backToGreeting.hidden = true;
 
   visitorName.addEventListener("keydown", function (event) {
     if (event.key === "Enter") {
@@ -426,10 +454,29 @@ greeting.volume = 1;
 
   exploreMediaMinds.addEventListener("click", function () {
     welcomeScreen.classList.add("hidden");
-
     setTimeout(function () {
       welcomeScreen.style.display = "none";
+      backToGreeting.hidden = false;
     }, 650);
+  });
+
+  backToName.addEventListener("click", function () {
+    greetingStep.hidden = true;
+    nameStep.hidden = false;
+    welcomeScreen.classList.remove("hidden");
+    welcomeScreen.style.display = "flex";
+    backToGreeting.hidden = true;
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    setTimeout(function () { visitorName.focus(); }, 50);
+  });
+
+  backToGreeting.addEventListener("click", function () {
+    welcomeScreen.classList.remove("hidden");
+    welcomeScreen.style.display = "flex";
+    nameStep.hidden = true;
+    greetingStep.hidden = false;
+    backToGreeting.hidden = true;
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
   });
 }
 (function(){
