@@ -385,6 +385,10 @@ if (
 
 if (character3D) {
   character3D.style.display = "flex";
+
+  window.dispatchEvent(
+    new Event("mediaMindsCharacterShow")
+  );
 }
   });
 
